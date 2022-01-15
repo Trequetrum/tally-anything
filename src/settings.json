@@ -1,0 +1,22 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "build/tmp/**/*": true,
+        "build/downloads": true,
+        "build/sstate-cache": true,
+        "build/cache": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "build/tmp/**/*": true,
+        "build/downloads": true,
+        "build/sstate-cache": true,
+        "build/cache": true
+    }
+}
