@@ -6,17 +6,20 @@ import * as React from 'react';
 import {
   Box
 } from '@mui/material';
-import { DummyStore, StoreCashe } from './store';
+import { 
+  StoreWriter,
+  DummyStore, 
+  StoreCashe,
+  implStoreWriter
+} from './store';
 
 export {App}
 
 function App(): JSX.Element {
   
-  const store = React.useRef<StoreCashe>(new DummyStore()).current
-
-  // Whenever the StoreCashe emits, this element is re-rendered
-  const [,go] = React.useState(true)
-  React.useEffect(() => store.subscribe(() => go(a => !a)), [])
+  const tuple = React.useReducer(implStoreWriter, new DummyStore());
+  const store: StoreCashe = tuple[0];
+  const storeDispatch = tuple[1] as StoreWriter
 
   const pushups = store.getByTag("pushups")
 
@@ -24,7 +27,7 @@ function App(): JSX.Element {
     <div className="App">
       <TopAppBar />
       <Box sx={{display: 'flex', justifyContent: 'center'}}>
-        <TallyView taggedEntries={pushups} store={store}/>
+        <TallyView taggedEntries={pushups} storeDispatch={storeDispatch}/>
       </Box>
     </div>
   );

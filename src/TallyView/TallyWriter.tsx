@@ -5,16 +5,16 @@ import {
   Box,
   Button
 } from '@mui/material';
-import { StoreCashe } from '../store';
+import { StoreCashe, StoreWriter } from '../store';
 import { MsgAlert } from '../BasicComponents/MsgAlert';
 
 export { TallyWriter }
 
 function TallyWriter(
-  { tag, store }:
+  { tag, storeDispatch }:
     {
       tag: string,
-      store: StoreCashe
+      storeDispatch: StoreWriter
     }
 ) {
 
@@ -33,7 +33,7 @@ function TallyWriter(
       count = num as number
     }
     
-    store.write({ tag, date: Date.now(), count })
+    storeDispatch({entry: { tag, date: Date.now(), count }})
    
   }
 

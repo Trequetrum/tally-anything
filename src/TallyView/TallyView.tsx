@@ -6,15 +6,15 @@ import { EntriesTable } from './EntriesTable'
 import { SummaryTable } from './SummaryTable'
 import { TallyWriter } from './TallyWriter'
 import { mergeDays, sum } from './util';
-import { StoreCashe, TaggedEntries } from '../store';
+import { TaggedEntries, StoreWriter } from '../store';
 
 export { TallyView }
 
 function TallyView(
-  { taggedEntries, store }:
+  { taggedEntries, storeDispatch }:
     {
       taggedEntries: TaggedEntries,
-      store: StoreCashe
+      storeDispatch: StoreWriter
     }
 ) {
   const tag = taggedEntries.tag
@@ -24,6 +24,7 @@ function TallyView(
   const currentDate = new Date()
   const currentTime = currentDate.getTime()
 
+  const thisYear = mergedEntries.filter(v => new Date(v.date).getFullYear() == currentDate.getFullYear())
   const last30Days = mergedEntries.filter(v => v.date > (currentTime - 2592000000))
   const last7Days = last30Days.filter(v => v.date > (currentTime - 604800000))
   const last24Hrs = last7Days.filter(v => v.date > (currentTime - 86400000))
@@ -46,18 +47,32 @@ function TallyView(
     .map(v => v.count)
   ) / dayOfTheMonth
 
+  const dayOfTheYear = (Date.UTC(
+    currentDate.getFullYear(), 
+    currentDate.getMonth(), 
+    currentDate.getDate()
+  ) - 
+  Date.UTC(
+    currentDate.getFullYear(), 
+    0, 
+    0
+  )) / 24 / 60 / 60 / 1000;
+  
+  const avgThisYear = sum(thisYear.map(v => v.count)) / dayOfTheYear
+
   return (
     <div>
       <h1>{tag}</h1>
-      <TallyWriter tag={tag} store={store} />
+      <TallyWriter tag={tag} storeDispatch={storeDispatch} />
       <SummaryTable dispList={[
         { label: "Total Today:", value: numToday },
         { label: "7 Day Avg:", value: avg7Days },
         { label: "30 Day Avg:", value: avg30Days },
         { label: "Avg this Week:", value: avgWeek },
-        { label: "Avg this Month:", value: avgMonth }
+        { label: "Avg this Month:", value: avgMonth },
+        { label: "Avg this Year:", value: avgThisYear }
       ]} />
-      <EntriesTable taggedEntries={taggedEntries} store={store}/>
+      <EntriesTable taggedEntries={taggedEntries} storeDispatch={storeDispatch}/>
     </div>
   )
 

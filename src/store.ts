@@ -1,5 +1,5 @@
-export type { StoreEntry, Entry, TaggedEntries, StoreCashe }
-export { DummyStore }
+export type { StoreEntry, Entry, TaggedEntries, StoreCashe, StoreAction, StoreWriter }
+export { implStoreWriter, MapStoreCashe, DummyStore }
 
 interface StoreEntry {
   tag: string,
@@ -18,73 +18,47 @@ interface TaggedEntries {
 }
 
 interface StoreCashe {
-  // Bare-bones observer pattern
-  subscribe(fn:() => void): void,
-  notify():void,
-
-  // Custom back end
-  load(): void,
-  save(): void,
-
   // Basic Operations
   read(): StoreEntry[],
   write({tag, count, date}: StoreEntry): void,
   update(oldEntry: StoreEntry, newEntry: StoreEntry): void
 
-  // Domain Specific Operators
+  // Domain Specific Operations
   listTags(): string[],
   getByTag(tag: string): TaggedEntries
 }
 
-abstract class MapStoreCashe implements StoreCashe {
+class MapStoreCashe implements StoreCashe {
   private store: Map<string, Map<number, number>>
-  private subscriptions: (() => void)[]
 
   constructor(){
-    this.store = new Map()
-    this.subscriptions = []
+    this.store = new Map();
   }
-
-  subscribe(fn:() => void){
-    this.subscriptions.push(fn)
-  }
-
-  notify(){
-    this.subscriptions.forEach(fn => fn())
-  }
-
-  abstract load(): void
-  abstract save(): void
 
   read(): StoreEntry[] {
-    let entries: StoreEntry[] = []
+    let entries: StoreEntry[] = [];
     this.store.forEach((m, tag) =>
       m.forEach((count, date) => entries.push({tag, date, count}))
-    )
+    );
     return entries;
   }
 
-  write({tag, count, date}: StoreEntry, notify = true) {
-    let mTag = this.store.get(tag)
+  write({tag, count, date}: StoreEntry) {
+    let mTag = this.store.get(tag);
     if (mTag == null){
-      mTag = new Map()
-      this.store.set(tag, mTag)
+      mTag = new Map();
+      this.store.set(tag, mTag);
     }
-    mTag.set(date, count)
-
-    if(notify) this.notify()
+    mTag.set(date, count);
   }
 
-  update(oldEntry: StoreEntry, newEntry: StoreEntry, notify = true) {
-    console.log("Updating ", oldEntry)
-    console.log("to ", newEntry)
-
-    this.store.get(oldEntry.tag)?.delete(oldEntry.date)
-    this.write(newEntry, notify)
+  update(oldEntry: StoreEntry, newEntry: StoreEntry) {
+    this.store.get(oldEntry.tag)?.delete(oldEntry.date);
+    this.write(newEntry);
   }
 
   listTags(): string[] {
-    return Array.from(this.store.keys())
+    return Array.from(this.store.keys());
   }
 
   getByTag(tag: string): TaggedEntries {
@@ -94,7 +68,7 @@ abstract class MapStoreCashe implements StoreCashe {
         this.store.get(tag) || [], 
         ([date, count]) => ({ date, count })
       )
-    })
+    });
   }
 
 }
@@ -103,10 +77,7 @@ class DummyStore extends MapStoreCashe {
 
   constructor(){
     super();
-    this.load();
-  }
-
-  load() {
+    
     /* Generate some fake data */
 
     const tag = "pushups";
@@ -116,14 +87,42 @@ class DummyStore extends MapStoreCashe {
       const count = Math.round(Math.random() * (80 - 10) + 10);
       return { tag, count, date: Date.now() - key * 3600000 }
 
-    }).forEach(v => this.write(v,false))
-    
-    this.notify()
-  }
+    }).forEach(v => this.write(v))
 
-  save() {
-    /* Memory Store cannot persist data. No save */
   }
 
 }
 
+/******
+ * React Wrapper to the CasheStore to make useReducer ergonomic.
+ * We use storeWriter as a reducer function and call it a day.
+ ******/
+
+
+
+interface StoreWriteAction {
+  entry: StoreEntry
+}
+interface StoreUpdateAction {
+  oldEntry: StoreEntry, 
+  newEntry: StoreEntry
+}
+type StoreAction = StoreWriteAction | StoreUpdateAction
+
+type StoreWriter = (action:StoreAction) => StoreCashe
+
+function implStoreWriter(store: StoreCashe, action:StoreAction): StoreCashe{
+
+  // StoreWriteAction
+  if("entry" in action){
+    store.write(action.entry);
+  }
+  // StoreUpdateAction
+  if( "oldEntry" in action && 
+      "newEntry" in action
+  ){
+    store.update(action.oldEntry, action.newEntry);
+  }
+
+  return store;
+}

@@ -1,10 +1,10 @@
 import * as React from 'react';
 
 import { 
-  Entry, 
-  StoreCashe, 
+  Entry,
   TaggedEntries, 
-  StoreEntry 
+  StoreEntry, 
+  StoreWriter
 } from '../store'
 import { visuallyHidden } from '@mui/utils';
 import type {} from '@mui/lab/themeAugmentation';
@@ -44,10 +44,10 @@ import {
 export { EntriesTable }
 
 function EntriesTable(
-  { taggedEntries, store }:
+  { taggedEntries, storeDispatch }:
     {
       taggedEntries: TaggedEntries,
-      store: StoreCashe
+      storeDispatch: StoreWriter
     }
 ) {
 
@@ -172,16 +172,16 @@ function EntriesTable(
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      <EditEntryDialog store={store} opener={editDialogOpener}/>
+      <EditEntryDialog storeDispatch={storeDispatch} opener={editDialogOpener}/>
     </Box>
   );
 }
 
 function EditEntryDialog(
-  { opener, store }:
+  { opener, storeDispatch }:
     {
-      opener: { current: (entry: StoreEntry) => void }
-      store: StoreCashe
+      opener: { current: (entry: StoreEntry) => void },
+      storeDispatch: StoreWriter
     }
 ) {
 
@@ -209,7 +209,7 @@ function EditEntryDialog(
       } as StoreEntry
 
       if (!shallowEqual(oldEntry, newEntry)) {
-        store.update(oldEntry, newEntry)
+        storeDispatch({oldEntry, newEntry})
       }
 
       handleClose()
