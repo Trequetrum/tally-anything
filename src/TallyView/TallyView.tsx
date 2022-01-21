@@ -9,17 +9,19 @@ import { mergeDays, sum } from './util';
 import { TaggedEntries, StoreWriter } from '../store';
 
 export { TallyView }
-
 function TallyView(
-  { taggedEntries, storeDispatch }:
+  { tagSate, storeDispatch }:
     {
-      taggedEntries: TaggedEntries,
+      tagSate: {
+        tag: null | string,
+        entries: "Loading" | Entry[]
+      },
       storeDispatch: StoreWriter
     }
 ) {
-  const tag = taggedEntries.tag
+  const tag = tagSate.tag
 
-  const mergedEntries = mergeDays(taggedEntries.entries)
+  const mergedEntries = mergeDays(tagSate.entries)
 
   const currentDate = new Date()
   const currentTime = currentDate.getTime()

@@ -17,6 +17,8 @@ import {
   Menu as MenuIcon,
   Login as LoginIcon,
   Logout as LogoutIcon,
+  AddToDrive as AddToDriveIcon,
+  LockReset as LockResetIcon,
   PlaylistAddCheckCircle as PlaylistAddCheckCircleIcon,
   PlaylistAddCircle as PlaylistAddCircleIcon,
   AccountCircle as AccountCircleIcon
@@ -24,20 +26,24 @@ import {
 
 import {
   logout, 
-  getOAuthInstance 
+  getOAuthInstance, 
+  revokeAccess
 } from './GoogleDrive/gdrive-login'
+import { showGoogleDrivePicker } from './GoogleDrive/gdrive-picker';
+import { StoreWriter } from './GoogleDrive/gdrive-cashe';
 
 export { TopAppBar }
 
 function TopAppBar(
-  { logginState, tags, setTag }:
+  { logginState, tags, setTagSate, storeDispatch }:
     {
       logginState: {
         isLoggedIn: boolean, 
         userName: string
       },
       tags: string[],
-      setTag: (a:string) => void
+      setTagSate: (a:string) => void,
+      storeDispatch: StoreWriter
     }
 ) {
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -126,15 +132,37 @@ function TopAppBar(
           >
             {
               logginState.isLoggedIn ?
-                <MenuItem onClick={() => {
-                  logout();
-                  handleMenuClose();
-                }}>
-                  <ListItemIcon>
-                    <LogoutIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText inset>Logout</ListItemText>
-                </MenuItem> :
+                [ <MenuItem key="logout" onClick={() => {
+                    logout();
+                    handleMenuClose();
+                  }}>
+                    <ListItemIcon>
+                      <LogoutIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText inset>Logout</ListItemText>
+                  </MenuItem>,
+
+                  <MenuItem key="grant" onClick={() => {
+                    showGoogleDrivePicker();
+                    handleMenuClose();
+                  }}>
+                    <ListItemIcon>
+                      <AddToDriveIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText inset>Grant Files</ListItemText>
+                  </MenuItem>,
+
+                  <MenuItem key="revoke" onClick={() => {
+                    revokeAccess();
+                    handleMenuClose();
+                  }}>
+                    <ListItemIcon>
+                      <LockResetIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText inset>Revoke Access</ListItemText>
+                  </MenuItem>
+
+                ] :
                 <MenuItem onClick={() => {
                   getOAuthInstance();
                   handleMenuClose();

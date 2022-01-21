@@ -1,8 +1,12 @@
-import { LteMobiledataTwoTone } from '@mui/icons-material';
 import { getGapiClient } from './gdrive-login'
 
 export type { GoogleFile }
-export { getOrCreateEverythingFile }
+export { 
+  getAllAccessibleFiles, 
+  getFileFromDrive, 
+  saveFile, 
+  createAndSaveNewFile 
+}
 
 declare var google: any;
 
@@ -11,16 +15,21 @@ const JSON_MIME_TYPE = "application/json"
 interface GoogleFile {
   id: string,
   name: string,
-  canEdit: boolean,
-  modifiedTime: string
   content: any
 }
+
+const folderType = 'application/vnd.google-apps.folder';
+// Name of the folder where we save documents created by this app
+const folderName = 'TallyAnythingDocs';
+// filename appended
+const fileNameAffix = '-TA';
+let folderId = ""
 
 /*****
  * Goes to the user's google drive and tries to retrieve a
  * file with the given ID. This does not cache the file.
  *****/
-async function getFileFromDrive(docID: string): Promise<GoogleFile> {
+ async function getFileFromDrive(docID: string): Promise<GoogleFile> {
 
   const client = await getGapiClient();
   const fileQuery = client.drive.files.get({
@@ -65,20 +74,12 @@ async function getFileFromDrive(docID: string): Promise<GoogleFile> {
 
 }
 
-const folderType = 'application/vnd.google-apps.folder';
-// Name of the folder where we save documents created by this app
-const folderName = 'TallyAnythingDocs';
-// filename appended
-const fileNameAffix = '-TA';
-let folderId = ""
-
 /***
  * Get the google drive folder id where we store our files.
  * Performs the nessesary calls to find or create the folder.
  ***/
 async function getFolderId(): Promise<string> {
 
-  console.log(">>>>>>>>>> getFolderId 1")
   // If we already have an ID for the folder, this is very straight forward.
   if (folderId.length > 0) {
     return folderId
@@ -86,14 +87,10 @@ async function getFolderId(): Promise<string> {
 
   const client = await getGapiClient();
 
-  console.log(">>>>>>>>>> getFolderId 2")
-
   const folderQuery = await client.drive.files.list({
-    q: `mimeType='${folderType}' and name='${folderName}' and trashed = false"`,
+    q: `mimeType='${folderType}' and name='${folderName}' and trashed=false`,
     fields: 'files(id)',
   })
-
-  console.log(">>>>>>>>>> getFolderId 3")
 
   const folders = folderQuery.result.files;
 
@@ -133,21 +130,6 @@ async function getAllAccessibleFiles(): Promise<({ id: string, name: string })[]
   return fileQuery?.result?.files?.map(
     (file: any) => ({ id: file.id, name: file.name })
   ) || []
-}
-
-async function getOrCreateEverythingFile(): Promise<GoogleFile> {
-  console.log(">>>>>>>>>> getOrCreateEverythingFile 1")
-  const allFiles = await getAllAccessibleFiles()
-  console.log(">>>>>>>>>> getOrCreateEverythingFile 2")
-  const everythingFile = allFiles.find(({ name }) => name == `everything${fileNameAffix}.json`)
-
-  if (everythingFile != null) {
-    console.log(">>>>>>>>>> getOrCreateEverythingFile 3")
-    return getFileFromDrive(everythingFile.id);
-  } else {
-    console.log(">>>>>>>>>> getOrCreateEverythingFile 4")
-    return createAndSaveNewFile("everything")
-  }
 }
 
 /***
@@ -235,9 +217,7 @@ async function saveFile(file: GoogleFile): Promise<boolean> {
 
 async function createAndSaveNewFile(name: string, content?: any): Promise<GoogleFile> {
 
-  console.log("createAndSaveNewFile 1")
   const [folder, client] = await Promise.all([getFolderId(), getGapiClient()]);
-  console.log("createAndSaveNewFile 2")
 
   const newFile = {} as any
   newFile.name = `${name}${fileNameAffix}.json`;
@@ -267,7 +247,7 @@ async function createAndSaveNewFile(name: string, content?: any): Promise<Google
     contentAsString(newFile, true) +
     close_delim;
 
-  const createdFile = client.request({
+  const createdFile = await client.request({
     path: '/upload/drive/v3/files',
     method: 'POST',
     params: {
@@ -277,7 +257,7 @@ async function createAndSaveNewFile(name: string, content?: any): Promise<Google
       'Content-Type': 'multipart/related; boundary="' + boundary + '"',
     },
     body: multipartRequestBody,
-  })
+  });
 
   newFile.id = createdFile.result.id;
   newFile.modifiedTime = createdFile.result.modifiedTime;

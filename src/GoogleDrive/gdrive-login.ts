@@ -1,18 +1,22 @@
-
-export { 
-  getGapiClient, 
-  isLoggedIn, 
-  userName, 
-  setLogginCallback, 
+export {
+  getGapiClient,
+  isLoggedIn,
+  userName,
+  setLogginCallback,
   getUserName,
   getOAuthInstance,
-  logout
+  getOauthToken,
+  logout,
+  appId,
+  gapiClientInit,
+  revokeAccess
 }
 
 declare var gapi: any;
 
 const googleApiKey = 'AIzaSyDpVnC9nF-bCsgfgJW7_gsrvenqX27S-c0';
 const clientId = '833733111006-t1ohltmjic3spr0r47j6nn6t4hvdt4tb.apps.googleusercontent.com';
+const appId = 'tally-anything-338816'
 const scopes = [
   'profile',
   'email',
@@ -24,7 +28,7 @@ const gapiScriptSrcUrl = "https://apis.google.com/js/api.js";
 
 let isLoggedIn = false
 let userName = ""
-let logginCallback = (loggedIn: boolean) => {}
+let logginCallback = (loggedIn: boolean) => { }
 
 const gapiClientInit = new Promise((resolve, reject) => {
 
@@ -60,25 +64,23 @@ const gapiClientInit = new Promise((resolve, reject) => {
   })
 
 ).then(() => {
+  // GAPI Client is initialized
 
   // Handle the initial loggin state.
-  isLoggedIn = gapi.auth2.getAuthInstance().isSignedIn.get();
-  userName = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getGivenName()
-  console.log(`>>>>>>>>>> Startup loggin is ${isLoggedIn}`)
-  logginCallback(isLoggedIn)
-
-  // GAPI Client is initialized
+  handleLogin(gapi.auth2.getAuthInstance().isSignedIn.get())
   // Listen for loggin state changes.
-  gapi.auth2.getAuthInstance().isSignedIn.listen((isSignedIn:boolean) => {
-    isLoggedIn = isSignedIn;
-    userName = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getGivenName()
-    console.log(">>>>>>>>>> Updating Login to ", isSignedIn)
-    logginCallback(isSignedIn);
-  });
+  gapi.auth2.getAuthInstance().isSignedIn.listen(handleLogin);
 
+  return true
 })
 
-function setLogginCallback(fn: (isLoggedIn: boolean) => void){
+function handleLogin(isSignedIn: boolean) {
+  isLoggedIn = isSignedIn;
+  userName = gapi?.auth2?.getAuthInstance()?.currentUser?.get()?.getBasicProfile()?.getGivenName() || ""
+  logginCallback(isSignedIn);
+}
+
+function setLogginCallback(fn: (isLoggedIn: boolean) => void) {
   logginCallback = fn;
 }
 
@@ -92,19 +94,19 @@ async function getOAuthInstance() {
   return gapi.auth2.getAuthInstance();
 }
 
-async function logout() {
+async function logout(): Promise<boolean> {
   if (isLoggedIn) {
     gapi.auth2.getAuthInstance().signOut()
   }
-  return false;
+  return true;
 }
 
-async function getOauthToken() {
+async function getOauthToken(): Promise<string> {
   const instance = await getOAuthInstance();
   return instance.currentUser.get().getAuthResponse().access_token
 }
 
-async function getGapiClient() : Promise<any> {
+async function getGapiClient(): Promise<any> {
   await gapiClientInit
   return gapi.client
 }
@@ -114,3 +116,8 @@ async function getUserName(): Promise<string> {
   return instance.currentUser.get().getBasicProfile().getGivenName()
 }
 
+async function revokeAccess(): Promise<boolean>{
+  const instance = await getOAuthInstance();
+  instance.disconnect()
+  return true
+}

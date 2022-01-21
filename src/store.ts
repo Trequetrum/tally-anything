@@ -1,5 +1,5 @@
-export type { StoreEntry, Entry, TaggedEntries, StoreCashe, StoreAction, StoreWriter }
-export { implStoreWriter, MapStoreCashe, DummyStore }
+export type { StoreEntry, Entry, TaggedEntries, StoreCashe }
+export { MapStoreCashe }
 
 interface StoreEntry {
   tag: string,
@@ -20,33 +20,33 @@ interface TaggedEntries {
 interface StoreCashe {
   // Basic Operations
   read(): StoreEntry[],
-  write({tag, count, date}: StoreEntry): void,
+  write({ tag, count, date }: StoreEntry): void,
   update(oldEntry: StoreEntry, newEntry: StoreEntry): void,
   clear(): void,
 
   // Domain Specific Operations
   listTags(): string[],
-  getByTag(tag: string): TaggedEntries
+  getByTag(tag: string): null | TaggedEntries
 }
 
 class MapStoreCashe implements StoreCashe {
   private store: Map<string, Map<number, number>>
 
-  constructor(){
+  constructor() {
     this.store = new Map();
   }
 
   read(): StoreEntry[] {
     let entries: StoreEntry[] = [];
     this.store.forEach((m, tag) =>
-      m.forEach((count, date) => entries.push({tag, date, count}))
+      m.forEach((count, date) => entries.push({ tag, date, count }))
     );
     return entries;
   }
 
-  write({tag, count, date}: StoreEntry) {
+  write({ tag, count, date }: StoreEntry) {
     let mTag = this.store.get(tag);
-    if (mTag == null){
+    if (mTag == null) {
       mTag = new Map();
       this.store.set(tag, mTag);
     }
@@ -62,80 +62,18 @@ class MapStoreCashe implements StoreCashe {
     return Array.from(this.store.keys());
   }
 
-  getByTag(tag: string): TaggedEntries {
-    return ({
-      tag,
-      entries: Array.from(
-        this.store.get(tag) || [], 
-        ([date, count]) => ({ date, count })
-      )
-    });
-  }
+  getByTag(tag: string): null | TaggedEntries {
+    const entries = Array.from(
+      this.store.get(tag) || [],
+      ([date, count]) => ({ date, count })
+    )
 
-  clear(){
+    return entries != null ? ({ tag, entries }) : null;
+  }
+    
+
+  clear() {
     this.store = new Map();
   }
 
-}
-
-class DummyStore extends MapStoreCashe {
-
-  constructor(){
-    super();
-    
-    /* Generate some fake data */
-
-    const tag = "pushups";
-
-    Array.from(Array(5).keys()).map(key => {
-
-      const count = Math.round(Math.random() * (80 - 10) + 10);
-      return { tag, count, date: Date.now() - key * 3600000 }
-
-    }).forEach(v => this.write(v))
-
-  }
-
-}
-
-/******
- * React Wrapper to the CasheStore to make useReducer ergonomic.
- * We use storeWriter as a reducer function and call it a day.
- ******/
-
-
-
-interface StoreWriteAction {
-  entry: StoreEntry
-}
-interface StoreUpdateAction {
-  oldEntry: StoreEntry, 
-  newEntry: StoreEntry
-}
-interface StoreClearAction{
-  clear: boolean
-}
-
-type StoreAction = StoreWriteAction | StoreUpdateAction | StoreClearAction
-
-type StoreWriter = (action:StoreAction) => StoreCashe
-
-function implStoreWriter(store: StoreCashe, action:StoreAction): StoreCashe{
-
-  // StoreWriteAction
-  if("entry" in action){
-    store.write(action.entry);
-  }
-  // StoreUpdateAction
-  if( "oldEntry" in action && 
-      "newEntry" in action
-  ){
-    store.update(action.oldEntry, action.newEntry);
-  }
-
-  if( "clear" in action && action.clear){
-    store.clear();
-  }
-
-  return store;
 }

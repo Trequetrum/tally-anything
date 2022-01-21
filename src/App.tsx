@@ -1,40 +1,33 @@
 
 import './App.css';
-import {TopAppBar} from './TopAppBar'
-import {TallyView} from './TallyView/TallyView'
+import { TopAppBar } from './TopAppBar'
+import { TallyView } from './TallyView/TallyView'
 import * as React from 'react';
 import {
   Box
 } from '@mui/material';
-import { 
-  StoreWriter,
-  DummyStore, 
-  StoreCashe,
-  implStoreWriter,
-  StoreAction
-} from './store';
 import {
   isLoggedIn,
   userName,
   setLogginCallback,
   getUserName
 } from './GoogleDrive/gdrive-login'
-import { 
-  getOrCreateEverythingFile
-} from './GoogleDrive/gdocfile'
+import { GoogleFilesCashe, implStoreWriter, StoreAction, StoreWriter } from './GoogleDrive/gdrive-cashe';
+import { getAllAccessibleFiles } from './GoogleDrive/gdrive-file';
+import { Entry, TaggedEntries } from './store';
 
-export {App}
+export { App }
 
 // Wrapping our persistant storeCashe stops react from bailing out of
 // a dispatch due to the store reference not changing.
-function storeReducer({store}:{store: StoreCashe}, action: StoreAction):{store: StoreCashe}{
-  return ({store: implStoreWriter(store, action)})
+function storeReducer({ store }: { store: GoogleFilesCashe }, action: StoreAction): { store: GoogleFilesCashe } {
+  return ({ store: implStoreWriter(store, action) })
 }
 
 function App(): JSX.Element {
 
-  const storeRTuple = React.useReducer(storeReducer, {store: new DummyStore()});
-  const store: StoreCashe = storeRTuple[0].store;
+  const storeRTuple = React.useReducer(storeReducer, { store: new GoogleFilesCashe() });
+  const store: GoogleFilesCashe = storeRTuple[0].store;
   const storeDispatch = storeRTuple[1] as StoreWriter
 
   const [logginState, setLogginState] = React.useState<any>({
@@ -42,48 +35,53 @@ function App(): JSX.Element {
     userName
   });
 
-  console.log(">>>>>>>>>> logginState", logginState);
-
   const logginCallback = React.useCallback(async (isLoggedIn: boolean) => {
-    console.log(">>>>>>>>>> logginCallback in use");
-    if(isLoggedIn){
+    if (isLoggedIn) {
 
-      const [userName, everythingFile] = await Promise.all([
-        getUserName(), 
-        getOrCreateEverythingFile()
+      const [userName, driveFileNames] = await Promise.all([
+        getUserName(),
+        getAllAccessibleFiles()
       ])
 
-      if(Array.isArray(everythingFile.content)){
-        store.clear();
-        everythingFile.content.forEach((v:any) => {
-          if("tag" in v && "count" in v && "date" in v){
-            store.write({tag: v.tag, count: v.count, date: v.date});
-          }
-        })
-      }
+      storeDispatch({ files: driveFileNames })
+      setLogginState({ isLoggedIn, userName })
 
-      setLogginState({isLoggedIn, userName})
-
-    }else{
+    } else {
 
       store.clear();
-      setLogginState({isLoggedIn: false, userName: ""})
+      setLogginState({ isLoggedIn: false, userName: "" })
 
     }
   }, [setLogginState])
-  
+
   React.useEffect(() => setLogginCallback(logginCallback), [logginCallback]);
-  
-  const [tag, setTag] = React.useState("pushups")
+
+  const [tagState, setTagSate] = React.useState({
+    tag: null,
+    entries: "Loading"
+  } as {
+    tag: null | string,
+    entries: "Loading" | Entry[]
+  });
 
   const tags = store.listTags();
-  const entires = store.getByTag(tag);
+
+  React.useEffect(() => {
+    if (tagState.tag != null) {
+      store.getByTag(tagState.tag).then((entries: null | TaggedEntries) =>
+        setTagSate({
+          tag: tagState.tag,
+          entries: entries?.entries || []
+        })
+      );
+    }
+  }, [tagState, setTagSate]);
 
   return (
     <div className="App">
-      <TopAppBar logginState={logginState} tags={tags} setTag={setTag}/>
-      <Box sx={{display: 'flex', justifyContent: 'center'}}>
-        <TallyView taggedEntries={entires} storeDispatch={storeDispatch}/>
+      <TopAppBar logginState={logginState} tags={tags} setTagSate={setTagSate} storeDispatch={storeDispatch} />
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <TallyView tagSate={tagState} storeDispatch={storeDispatch} />
       </Box>
     </div>
   );
