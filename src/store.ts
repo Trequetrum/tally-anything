@@ -21,7 +21,8 @@ interface StoreCashe {
   // Basic Operations
   read(): StoreEntry[],
   write({tag, count, date}: StoreEntry): void,
-  update(oldEntry: StoreEntry, newEntry: StoreEntry): void
+  update(oldEntry: StoreEntry, newEntry: StoreEntry): void,
+  clear(): void,
 
   // Domain Specific Operations
   listTags(): string[],
@@ -71,6 +72,10 @@ class MapStoreCashe implements StoreCashe {
     });
   }
 
+  clear(){
+    this.store = new Map();
+  }
+
 }
 
 class DummyStore extends MapStoreCashe {
@@ -107,7 +112,11 @@ interface StoreUpdateAction {
   oldEntry: StoreEntry, 
   newEntry: StoreEntry
 }
-type StoreAction = StoreWriteAction | StoreUpdateAction
+interface StoreClearAction{
+  clear: boolean
+}
+
+type StoreAction = StoreWriteAction | StoreUpdateAction | StoreClearAction
 
 type StoreWriter = (action:StoreAction) => StoreCashe
 
@@ -122,6 +131,10 @@ function implStoreWriter(store: StoreCashe, action:StoreAction): StoreCashe{
       "newEntry" in action
   ){
     store.update(action.oldEntry, action.newEntry);
+  }
+
+  if( "clear" in action && action.clear){
+    store.clear();
   }
 
   return store;

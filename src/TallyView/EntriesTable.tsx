@@ -51,8 +51,6 @@ function EntriesTable(
     }
 ) {
 
-  console.log("Render EntriesTable")
-
   const rows = taggedEntries.entries
 
   const [order, setOrder] = React.useState<'asc' | 'desc'>('desc');
@@ -184,8 +182,6 @@ function EditEntryDialog(
       storeDispatch: StoreWriter
     }
 ) {
-
-    console.log("Calling useEditEntryDialog")
 
     const [open, setOpen] = React.useState(false);
     const [oldEntry, setOldEntry] = React.useState<StoreEntry>({ tag: "", count: 0, date: 0 });
