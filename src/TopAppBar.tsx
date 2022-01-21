@@ -31,6 +31,7 @@ import {
 } from './GoogleDrive/gdrive-login'
 import { showGoogleDrivePicker } from './GoogleDrive/gdrive-picker';
 import { StoreWriter } from './GoogleDrive/gdrive-cashe';
+import { Entry } from './store';
 
 export { TopAppBar }
 
@@ -42,7 +43,10 @@ function TopAppBar(
         userName: string
       },
       tags: string[],
-      setTagSate: (a:string) => void,
+      setTagSate: (a:{
+        tag: null | string,
+        entries: "Loading" | Entry[]
+      }) => void,
       storeDispatch: StoreWriter
     }
 ) {
@@ -87,7 +91,7 @@ function TopAppBar(
                   <MenuItem 
                     key={tag}
                     onClick={() => {
-                      setTag(tag);
+                      setTagSate({tag, entries: "Loading"});
                       handleMenuClose();
                     }
                   }>

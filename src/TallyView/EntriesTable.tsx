@@ -3,8 +3,7 @@ import * as React from 'react';
 import { 
   Entry,
   TaggedEntries, 
-  StoreEntry, 
-  StoreWriter
+  StoreEntry
 } from '../store'
 import { visuallyHidden } from '@mui/utils';
 import type {} from '@mui/lab/themeAugmentation';
@@ -40,18 +39,20 @@ import {
   NumericFieldOutput,
   NumericTextField
 } from '../BasicComponents/NumericTextField';
+import { StoreWriter } from '../GoogleDrive/gdrive-cashe';
 
 export { EntriesTable }
 
 function EntriesTable(
-  { taggedEntries, storeDispatch }:
+  { tag, entries, storeDispatch }:
     {
-      taggedEntries: TaggedEntries,
+      tag: string,
+      entries: Entry[],
       storeDispatch: StoreWriter
     }
 ) {
 
-  const rows = taggedEntries.entries
+  const rows = entries
 
   const [order, setOrder] = React.useState<'asc' | 'desc'>('desc');
   const [orderBy, setOrderBy] = React.useState<keyof Entry>('date');
@@ -139,7 +140,7 @@ function EntriesTable(
                     <TableCell align="right">{entry.count}</TableCell>
                     <TableCell align="center">
                       <Button onClick={() => editDialogOpener.current({
-                        tag: taggedEntries.tag,
+                        tag,
                         ...entry
                       })}>
                         Edit

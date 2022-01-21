@@ -6,22 +6,21 @@ import { EntriesTable } from './EntriesTable'
 import { SummaryTable } from './SummaryTable'
 import { TallyWriter } from './TallyWriter'
 import { mergeDays, sum } from './util';
-import { TaggedEntries, StoreWriter } from '../store';
+import { TaggedEntries} from '../store';
+import { StoreWriter } from '../GoogleDrive/gdrive-cashe';
 
 export { TallyView }
+
 function TallyView(
-  { tagSate, storeDispatch }:
+  { tag, entries, storeDispatch }:
     {
-      tagSate: {
-        tag: null | string,
-        entries: "Loading" | Entry[]
-      },
+      tag: string,
+      entries: "Loading" | Entry[],
       storeDispatch: StoreWriter
     }
 ) {
-  const tag = tagSate.tag
 
-  const mergedEntries = mergeDays(tagSate.entries)
+  const mergedEntries = entries == "Loading"? [] : mergeDays(entries)
 
   const currentDate = new Date()
   const currentTime = currentDate.getTime()
@@ -66,15 +65,28 @@ function TallyView(
     <div>
       <h1>{tag}</h1>
       <TallyWriter tag={tag} storeDispatch={storeDispatch} />
-      <SummaryTable dispList={[
-        { label: "Total Today:", value: numToday },
-        { label: "7 Day Avg:", value: avg7Days },
-        { label: "30 Day Avg:", value: avg30Days },
-        { label: "Avg this Week:", value: avgWeek },
-        { label: "Avg this Month:", value: avgMonth },
-        { label: "Avg this Year:", value: avgThisYear }
-      ]} />
-      <EntriesTable taggedEntries={taggedEntries} storeDispatch={storeDispatch}/>
+      {
+        entries == "Loading" ? 
+        <h4>Loading Entries</h4> :
+        entries.length < 1 ?
+        [] :
+        [
+          <SummaryTable key="st" dispList={[
+            { label: "Total Today:", value: numToday },
+            { label: "7 Day Avg:", value: avg7Days },
+            { label: "30 Day Avg:", value: avg30Days },
+            { label: "Avg this Week:", value: avgWeek },
+            { label: "Avg this Month:", value: avgMonth },
+            { label: "Avg this Year:", value: avgThisYear }
+          ]} />,
+          <EntriesTable 
+            key="et" 
+            tag={tag}
+            entries={entries as Entry[]} 
+            storeDispatch={storeDispatch}
+          />
+        ]
+      }
     </div>
   )
 

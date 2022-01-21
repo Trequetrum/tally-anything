@@ -80,9 +80,13 @@ function App(): JSX.Element {
   return (
     <div className="App">
       <TopAppBar logginState={logginState} tags={tags} setTagSate={setTagSate} storeDispatch={storeDispatch} />
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <TallyView tagSate={tagState} storeDispatch={storeDispatch} />
-      </Box>
+      {
+        tagState.tag == null ?
+        <h4>Select A Thing To Tally</h4> :
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <TallyView tag={tagState.tag} entries={tagState.entries} storeDispatch={storeDispatch} />
+        </Box>
+      }
     </div>
   );
 }
