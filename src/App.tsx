@@ -120,9 +120,7 @@ function useLoadingTags(storeWrapper: {store: FileStoreCashe}): [
   // If entries are set to loading, load them
   React.useEffect(() => {
     if (tagState.tag != null && tagState.entries == "Loading") {
-      console.log("Loading tag:", tagState.tag)
       storeWrapper.store.requestBytag(tagState.tag).then((entries: Entry[]) => {
-        console.log("Setting tag:", tagState.tag, entries)
         setTagSate({
           tag: tagState.tag,
           entries

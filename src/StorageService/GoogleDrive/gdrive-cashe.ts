@@ -1,3 +1,4 @@
+import { assert } from "console";
 import { MapStoreCashe, StoreCashe, StoreEntry, FileStoreCashe, Entry } from "../store";
 import { createAndSaveNewFile, getAllAccessibleFiles, getFileFromDrive, GoogleFile, saveFile } from "./gdrive-file";
 
@@ -49,20 +50,16 @@ class GoogleFilesCashe implements FileStoreCashe {
   }
 
   async requestBytag(tag: string): Promise<Entry[]> {
-    console.log("requestBytag: ", tag, this.store);
     const storeTags = this.entriesByTag(tag);
     const listed = this.files?.find(v => v.tag == tag);
     if (storeTags.length < 1 && listed == null) {
-      console.log("storeTags == null && listed == null")
       return [];
     } else if (storeTags.length < 1 && listed != null) {
-      console.log("storeTags == null && listed != null");
       const { content, ...rest } = await getFileFromDrive(listed.id)
       listed.file = { content: null, ...rest }
       this.cashFileContent(tag, content);
       return this.entriesByTag(tag);
     } else {
-      console.log("storeTags != null && listed == ?");
       return storeTags;
     }
   }
@@ -78,15 +75,26 @@ class GoogleFilesCashe implements FileStoreCashe {
   }
 
   addFiles(files: ({ name: string, id: string })[]): void {
-    if (this.files == null && files.length > 0) {
+    if ( files.length < 1){
+      return;
+    }
+
+    if (this.files == null) {
       this.files = [];
     }
 
     files.forEach(({ name, id }) => {
       const idx = name.search(/(-[0123456789]*)?-TA.json/);
-      if (idx > -1) {
+      if (idx > -1 && this.files != null) {
         const tag = name.substring(0, idx);
-        this.files?.push({ name, tag, id });
+        const prevIdx = this.files?.findIndex(v => v.tag == tag);
+        const newMetaFile = { name, tag, id };
+
+        if(prevIdx == -1){
+          this.files.push(newMetaFile);
+        }else{
+          this.files[prevIdx] = newMetaFile;
+        }
       }
     });
 
@@ -139,12 +147,13 @@ class GoogleFilesCashe implements FileStoreCashe {
       }))
     }
 
-    if (listed != null) {
+    if (listed != null && listed.id.length > 0) {
       saveFile({ id: listed.id, name: listed.name, content });
-    } else {
+    } else if (listed == null) {
+      this.addFiles([{ name: `${tag}-TA.json`, id: "" }]);
       createAndSaveNewFile(tag, content).then(file =>
         this.addFiles([{ name: file.name, id: file.id }])
-      )
+      );
     }
   }
 }
