@@ -49,38 +49,47 @@ class GoogleFilesCashe implements FileStoreCashe {
   }
 
   async requestBytag(tag: string): Promise<Entry[]> {
+    console.log("requestBytag: ", tag, this.store);
     const storeTags = this.entriesByTag(tag);
     const listed = this.files?.find(v => v.tag == tag);
-    if (storeTags == null && listed == null) {
+    if (storeTags.length < 1 && listed == null) {
+      console.log("storeTags == null && listed == null")
       return [];
-    } else if (storeTags == null && listed != null) {
+    } else if (storeTags.length < 1 && listed != null) {
+      console.log("storeTags == null && listed != null");
       const { content, ...rest } = await getFileFromDrive(listed.id)
       listed.file = { content: null, ...rest }
       this.cashFileContent(tag, content);
       return this.entriesByTag(tag);
     } else {
+      console.log("storeTags != null && listed == ?");
       return storeTags;
     }
   }
 
-  async requestTags(): Promise<string[]>{
+  async requestTags(): Promise<string[]> {
 
-    if( this.files == null ){
+    if (this.files == null) {
       const files = await getAllAccessibleFiles();
-
+      this.addFiles(files);
     }
 
     return this.getTags();
   }
 
   addFiles(files: ({ name: string, id: string })[]): void {
+    if (this.files == null && files.length > 0) {
+      this.files = [];
+    }
+
     files.forEach(({ name, id }) => {
-      const idx = name.search(/-+[0123456789]*-TA.json/);
+      const idx = name.search(/(-[0123456789]*)?-TA.json/);
       if (idx > -1) {
-        const tag = name.substring(0, idx)
-        this.files?.push({ name, tag, id })
+        const tag = name.substring(0, idx);
+        this.files?.push({ name, tag, id });
       }
-    })
+    });
+
   }
 
   cashFileContent(tag: string, content: any) {
@@ -126,14 +135,16 @@ class GoogleFilesCashe implements FileStoreCashe {
       version: "0.1.0",
       entries: entries.map(entry => ({
         count: entry.count,
-        date: new Date(entry.date).toISOString
+        date: new Date(entry.date).toISOString()
       }))
     }
 
     if (listed != null) {
       saveFile({ id: listed.id, name: listed.name, content });
     } else {
-      createAndSaveNewFile(tag, content);
+      createAndSaveNewFile(tag, content).then(file =>
+        this.addFiles([{ name: file.name, id: file.id }])
+      )
     }
   }
 }

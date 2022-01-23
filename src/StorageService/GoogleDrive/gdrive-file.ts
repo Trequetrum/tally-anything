@@ -5,10 +5,11 @@ export {
   getAllAccessibleFiles, 
   getFileFromDrive, 
   saveFile, 
-  createAndSaveNewFile 
+  createAndSaveNewFile,
+  saveFileMetadata
 }
 
-declare var google: any;
+//declare var google: any;
 
 const JSON_MIME_TYPE = "application/json"
 
@@ -32,7 +33,7 @@ let folderId = ""
  async function getFileFromDrive(docID: string): Promise<GoogleFile> {
 
   const client = await getGapiClient();
-  const fileQuery = client.drive.files.get({
+  const fileQuery = await client.drive.files.get({
     fileId: docID,
     //'id, name, modifiedTime, capabilities(canRename, canDownload, canModifyContent)'
     fields: '*',
@@ -122,7 +123,7 @@ async function getFolderId(): Promise<string> {
 async function getAllAccessibleFiles(): Promise<({ id: string, name: string })[]> {
 
   const client = await getGapiClient();
-  const fileQuery = client.drive.files.list({
+  const fileQuery = await client.drive.files.list({
     q: "mimeType='application/json' and trashed = false", // and appProperties has { key='active' and value='true' }",
     fields: 'files(id, name)',
   })
@@ -130,19 +131,6 @@ async function getAllAccessibleFiles(): Promise<({ id: string, name: string })[]
   return fileQuery?.result?.files?.map(
     (file: any) => ({ id: file.id, name: file.name })
   ) || []
-}
-
-/***
- * Mostly for debugging.
- * Logs all accessible files to the console.
- */
-function listAllAccessibleFiles(): void {
-  console.log('Listing Files (Async): ');
-  getAllAccessibleFiles().then(
-    stringPairArr => stringPairArr.forEach((stringPair, i) =>
-      console.log('File ' + i + ': ', stringPair)
-    )
-  );
 }
 
 /**

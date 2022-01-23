@@ -19,46 +19,68 @@ function TallyView(
     }
 ) {
 
-  const mergedEntries = entries == "Loading"? [] : mergeDays(entries)
+  let dispList = [];
 
-  const currentDate = new Date()
-  const currentTime = currentDate.getTime()
+  if(entries != "Loading"){
+    const mergedEntries = mergeDays(entries);
 
-  const thisYear = mergedEntries.filter(v => new Date(v.date).getFullYear() == currentDate.getFullYear())
-  const last30Days = mergedEntries.filter(v => v.date > (currentTime - 2592000000))
-  const last7Days = last30Days.filter(v => v.date > (currentTime - 604800000))
-  const last24Hrs = last7Days.filter(v => v.date > (currentTime - 86400000))
+    const currentDate = new Date()
+    const currentTime = currentDate.getTime()
 
-  const numToday = last24Hrs[0]?.count || 0
-  const avg7Days = sum(last7Days.map(v => v.count)) / 7
-  const avg30Days = sum(last30Days.map(v => v.count)) / 30
+    const thisYear = mergedEntries.filter(v => new Date(v.date).getFullYear() == currentDate.getFullYear())
+    const last30Days = mergedEntries.filter(v => v.date > (currentTime - 2592000000))
+    const last7Days = last30Days.filter(v => v.date > (currentTime - 604800000))
+    const last24Hrs = last7Days.filter(v => v.date > (currentTime - 86400000))
 
-  const dayOfTheWeek = currentDate.getDay();
-  const thisWeekMs = dayOfTheWeek * 86400000
-  const avgWeek = sum(last7Days
-    .filter(v => v.date > (currentTime - thisWeekMs))
-    .map(v => v.count)
-  ) / dayOfTheWeek
+    dispList.push({
+      label: "Total Today:", 
+      value: last24Hrs[0]?.count || 0
+    });
+    dispList.push({
+      label: "7 Day Avg:", 
+      value: sum(last7Days.map(v => v.count)) / 7
+    });
+    dispList.push({
+      label: "30 Day Avg:", 
+      value: sum(last30Days.map(v => v.count)) / 30
+    });
 
-  const dayOfTheMonth = currentDate.getDate()
-  const thisMonthMs = dayOfTheMonth * 86400000
-  const avgMonth = sum(last30Days
-    .filter(v => v.date > (currentTime - thisMonthMs))
-    .map(v => v.count)
-  ) / dayOfTheMonth
+    const dayOfTheWeek = currentDate.getDay();
+    const thisWeekMs = dayOfTheWeek * 86400000
+    dispList.push({
+      label: "Avg this Week:", 
+      value: sum(last7Days
+        .filter(v => v.date > (currentTime - thisWeekMs))
+        .map(v => v.count)
+      ) / dayOfTheWeek == 0 ? 7 : dayOfTheWeek
+    });
 
-  const dayOfTheYear = (Date.UTC(
-    currentDate.getFullYear(), 
-    currentDate.getMonth(), 
-    currentDate.getDate()
-  ) - 
-  Date.UTC(
-    currentDate.getFullYear(), 
-    0, 
-    0
-  )) / 24 / 60 / 60 / 1000;
-  
-  const avgThisYear = sum(thisYear.map(v => v.count)) / dayOfTheYear
+    const dayOfTheMonth = currentDate.getDate()
+    const thisMonthMs = dayOfTheMonth * 86400000
+    dispList.push({
+      label: "Avg this Month:", 
+      value: sum(last30Days
+        .filter(v => v.date > (currentTime - thisMonthMs))
+        .map(v => v.count)
+      ) / dayOfTheMonth
+    });
+
+    const dayOfTheYear = (Date.UTC(
+      currentDate.getFullYear(), 
+      currentDate.getMonth(), 
+      currentDate.getDate()
+    ) - 
+    Date.UTC(
+      currentDate.getFullYear(), 
+      0, 
+      0
+    )) / 24 / 60 / 60 / 1000;
+    
+    dispList.push({
+      label: "Avg this Year:", 
+      value: sum(thisYear.map(v => v.count)) / dayOfTheYear
+    });
+  }
 
   return (
     <div>
@@ -70,14 +92,7 @@ function TallyView(
         entries.length < 1 ?
         [] :
         [
-          <SummaryTable key="st" dispList={[
-            { label: "Total Today:", value: numToday },
-            { label: "7 Day Avg:", value: avg7Days },
-            { label: "30 Day Avg:", value: avg30Days },
-            { label: "Avg this Week:", value: avgWeek },
-            { label: "Avg this Month:", value: avgMonth },
-            { label: "Avg this Year:", value: avgThisYear }
-          ]} />,
+          <SummaryTable key="st" dispList={dispList} />,
           <EntriesTable 
             key="et" 
             tag={tag}

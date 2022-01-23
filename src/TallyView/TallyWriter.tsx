@@ -18,23 +18,36 @@ function TallyWriter(
     }
 ) {
 
-  const alertDialogOpener = React.useRef((title: string, message: string) => {})
-  const [num, setNum] = React.useState<NumericFieldOutput>("Empty")
+  const [alertDialogState, setAlertDialogState] = React.useState({ 
+    open: false,
+    title: "",
+    message: ""
+  });
+
+  const [num, setNum] = React.useState<NumericFieldOutput>("Empty");
 
   const tallyClick = (count: number) => () => {
 
     if (count == 0 && num === "Empty"){
-      alertDialogOpener.current("Tally Not Recorded", "Custom field was left empty")
+      setAlertDialogState({
+        open: true,
+        title: "Tally Not Recorded",
+        message: "Custom field was left empty"
+      });
       return;
     }else if (count == 0 && num === "NaN"){
-      alertDialogOpener.current("Tally Not Recorded", "Custom field does not contain a number")
+      setAlertDialogState({
+        open: true,
+        title: "Tally Not Recorded",
+        message: "Custom field does not contain a number"
+      });
       return;
     }else if (count == 0){
       count = num as number
     }
     
     storeDispatch({
-      type: "StoreWriteAction", 
+      type: "Write", 
       payload: { tag, date: Date.now(), count }
     });
    
@@ -72,7 +85,7 @@ function TallyWriter(
       >
         Tally
       </Button>
-      <MsgAlert opener={alertDialogOpener}/>
+      <MsgAlert state={alertDialogState} setState={setAlertDialogState}/>
     </Box>
   )
 }

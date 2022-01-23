@@ -6,6 +6,7 @@ import * as React from 'react';
 import {
   Box
 } from '@mui/material';
+import { CallMade as CallMadeIcon } from '@mui/icons-material';
 import {
   isLoggedIn,
   userName,
@@ -26,32 +27,50 @@ interface TagState {
 // Wrapping our persistant storeCashe stops react from bailing out of
 // a dispatch due to the store reference not changing.
 function storeReducer({ store }: { store: FileStoreCashe }, action: StoreAction): { store: FileStoreCashe } {
-  return ({ store: implStoreWriter(store, action) })
+  return ({ store: implStoreWriter(store, action) });
 }
 
 function App({ globalStore }: { globalStore: FileStoreCashe }): JSX.Element {
 
-  const storeTuple = React.useReducer(storeReducer, { store: globalStore });
-  const store: FileStoreCashe = storeTuple[0].store;
-  const storeDispatch = storeTuple[1] as StoreWriter
+  const [storeWrapper, _storeDispatch] = React.useReducer(storeReducer, { store: globalStore });
+  const storeDispatch = _storeDispatch as StoreWriter
 
-  const [tagList, setTagList] = React.useState<string[]>([])
+  const logginState = useLogginManager(storeWrapper.store);
+  const [tagState, setTagSate] = useLoadingTags(storeWrapper)
+
+  const [tagList, setTagList] = React.useState<"Loading" | string[]>("Loading")
   React.useEffect(() => {
-    store.requestTags().then(setTagList)
-  }, [storeTuple[0]])
-
-  const logginState = useLogginManager(store);
-  const [tagState, setTagSate] = useLoadingTags(store)
+    if(logginState.isLoggedIn){
+      storeWrapper.store.requestTags().then(setTagList);
+    }
+  }, [storeWrapper, logginState])
 
   return (
     <div className="App">
-      <TopAppBar logginState={logginState} tags={tagList} setTagSate={setTagSate} storeDispatch={storeDispatch} />
+      <TopAppBar
+        logginState={logginState}
+        tags={tagList}
+        setTagSate={setTagSate}
+        storeDispatch={storeDispatch}
+      />
       {
+        !logginState.isLoggedIn ?
+        <Box sx={{ display: 'flex', justifyContent: 'center'}}>
+          <h4>Login to Begin! <CallMadeIcon /></h4>
+        </Box> 
+        :
         tagState.tag == null ?
-          <h4>Select A Thing To Tally</h4> :
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <TallyView tag={tagState.tag} entries={tagState.entries} storeDispatch={storeDispatch} />
-          </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center'}}>
+          <h4><CallMadeIcon sx={{ transform: 'rotate(270deg)' }} /> Select A Thing To Tally</h4> 
+        </Box>
+        :
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <TallyView
+            tag={tagState.tag}
+            entries={tagState.entries}
+            storeDispatch={storeDispatch}
+          />
+        </Box>
       }
     </div>
   );
@@ -72,14 +91,14 @@ function useLogginManager(store: FileStoreCashe) {
       store.clear();
       setLogginState({ isLoggedIn: false, userName: "" })
     }
-  }, [])
+  }, [store])
 
-  React.useEffect(() => setLogginCallback(logginCallback), []);
+  React.useEffect(() => setLogginCallback(logginCallback), [logginCallback]);
 
   return logginState
 }
 
-function useLoadingTags(store: FileStoreCashe):[
+function useLoadingTags(storeWrapper: {store: FileStoreCashe}): [
   TagState,
   (a: TagState) => void
 ] {
@@ -92,16 +111,25 @@ function useLoadingTags(store: FileStoreCashe):[
     entries: "Loading" | Entry[]
   });
 
+  // If the store has updated in any way, reload entries
+  React.useEffect(
+    () => setTagSate(a => ({tag:a.tag, entries: "Loading"})), 
+    [storeWrapper]
+  );
+
+  // If entries are set to loading, load them
   React.useEffect(() => {
     if (tagState.tag != null && tagState.entries == "Loading") {
-      store.requestBytag(tagState.tag).then((entries: Entry[]) =>
+      console.log("Loading tag:", tagState.tag)
+      storeWrapper.store.requestBytag(tagState.tag).then((entries: Entry[]) => {
+        console.log("Setting tag:", tagState.tag, entries)
         setTagSate({
           tag: tagState.tag,
           entries
         })
-      );
+      });
     }
-  }, [tagState]);
+  }, [tagState, storeWrapper]);
 
   return [tagState, setTagSate]
 }
