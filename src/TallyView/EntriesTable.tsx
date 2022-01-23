@@ -2,9 +2,8 @@ import * as React from 'react';
 
 import { 
   Entry,
-  TaggedEntries, 
   StoreEntry
-} from '../store'
+} from '../StorageService/store'
 import { visuallyHidden } from '@mui/utils';
 import type {} from '@mui/lab/themeAugmentation';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
@@ -39,7 +38,7 @@ import {
   NumericFieldOutput,
   NumericTextField
 } from '../BasicComponents/NumericTextField';
-import { StoreWriter } from '../GoogleDrive/gdrive-cashe';
+import { StoreWriter } from '../StorageService/store-reducer';
 
 export { EntriesTable }
 
@@ -206,7 +205,10 @@ function EditEntryDialog(
       } as StoreEntry
 
       if (!shallowEqual(oldEntry, newEntry)) {
-        storeDispatch({oldEntry, newEntry})
+        storeDispatch({
+          type: "StoreUpdateAction",
+          payload: {oldEntry, newEntry}
+        });
       }
 
       handleClose()

@@ -1,13 +1,12 @@
 
 import * as React from 'react';
 
-import { Entry } from '../store'
+import { Entry } from '../StorageService/store'
+import { StoreWriter } from '../StorageService/store-reducer';
 import { EntriesTable } from './EntriesTable'
 import { SummaryTable } from './SummaryTable'
 import { TallyWriter } from './TallyWriter'
 import { mergeDays, sum } from './util';
-import { TaggedEntries} from '../store';
-import { StoreWriter } from '../GoogleDrive/gdrive-cashe';
 
 export { TallyView }
 

@@ -1,4 +1,4 @@
-export type { StoreEntry, Entry, TaggedEntries, StoreCashe }
+export type { StoreEntry, Entry, StoreCashe, FileStoreCashe }
 export { MapStoreCashe }
 
 interface StoreEntry {
@@ -12,21 +12,26 @@ interface Entry {
   date: number
 }
 
-interface TaggedEntries {
-  tag: string,
-  entries: Entry[]
-}
-
 interface StoreCashe {
   // Basic Operations
-  read(): StoreEntry[],
-  write({ tag, count, date }: StoreEntry): void,
-  update(oldEntry: StoreEntry, newEntry: StoreEntry): void,
-  clear(): void,
+  read(): StoreEntry[];
+  write({ tag, count, date }: StoreEntry): void;
+  update(oldEntry: StoreEntry, newEntry: StoreEntry): void;
+  clear(): void;
 
   // Domain Specific Operations
-  listTags(): string[],
-  getByTag(tag: string): null | TaggedEntries
+  getTags(): string[];
+  entriesByTag(tag: string): Entry[];
+}
+
+interface FileStoreCashe extends StoreCashe {
+  // If there's file metadata stored elsewhere, enter it into the store
+  addFiles(files: ({ name: string, id: string })[]): void;
+
+  // Asyncronous Function calls that can check a server for data if
+  // it's not cashed in the StoreCashe
+  requestTags(): Promise<string[]>;
+  requestBytag(tag: string): Promise<Entry[]>;
 }
 
 class MapStoreCashe implements StoreCashe {
@@ -58,19 +63,16 @@ class MapStoreCashe implements StoreCashe {
     this.write(newEntry);
   }
 
-  listTags(): string[] {
+  getTags(): string[] {
     return Array.from(this.store.keys());
   }
 
-  getByTag(tag: string): null | TaggedEntries {
-    const entries = Array.from(
+  entriesByTag(tag: string): Entry[] {
+    return Array.from(
       this.store.get(tag) || [],
       ([date, count]) => ({ date, count })
-    )
-
-    return entries != null ? ({ tag, entries }) : null;
+    );
   }
-    
 
   clear() {
     this.store = new Map();

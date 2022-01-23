@@ -116,7 +116,7 @@ async function getUserName(): Promise<string> {
   return instance.currentUser.get().getBasicProfile().getGivenName()
 }
 
-async function revokeAccess(): Promise<boolean>{
+async function revokeAccess(): Promise<boolean> {
   const instance = await getOAuthInstance();
   instance.disconnect()
   return true

@@ -1,17 +1,16 @@
-import { MapStoreCashe, StoreCashe, StoreEntry, TaggedEntries } from "../store";
-import { createAndSaveNewFile, getFileFromDrive, GoogleFile, saveFile } from "./gdrive-file";
+import { MapStoreCashe, StoreCashe, StoreEntry, FileStoreCashe, Entry } from "../store";
+import { createAndSaveNewFile, getAllAccessibleFiles, getFileFromDrive, GoogleFile, saveFile } from "./gdrive-file";
 
-export type { StoreWriter, StoreAction }
-export { GoogleFilesCashe, implStoreWriter }
+export { GoogleFilesCashe }
 
-class GoogleFilesCashe {
+class GoogleFilesCashe implements FileStoreCashe {
 
   private store: StoreCashe
-  private files: ({ name: string, tag: string, id: string, file?: GoogleFile })[]
+  private files: null | ({ name: string, tag: string, id: string, file?: GoogleFile })[]
 
   constructor() {
     this.store = new MapStoreCashe();
-    this.files = []
+    this.files = null
   }
 
   read(): StoreEntry[] {
@@ -34,40 +33,52 @@ class GoogleFilesCashe {
   }
 
   clear(): void {
-    this.files = []
+    this.files = null
     this.store.clear();
   }
 
-  listTags(): string[] {
+  getTags(): string[] {
     return Array.from(new Set([
-      ...this.store.listTags(),
-      ...this.files.map(v => v.tag)
+      ...this.store.getTags(),
+      ...this.files?.map(v => v.tag) || []
     ]))
   }
 
-  async getByTag(tag: string): Promise<null | TaggedEntries> {
-    const storeTags = this.store.getByTag(tag);
-    const listed = this.files.find(v => v.tag == tag);
+  entriesByTag(tag: string): Entry[] {
+    return this.store.entriesByTag(tag);
+  }
+
+  async requestBytag(tag: string): Promise<Entry[]> {
+    const storeTags = this.entriesByTag(tag);
+    const listed = this.files?.find(v => v.tag == tag);
     if (storeTags == null && listed == null) {
-      return null;
+      return [];
     } else if (storeTags == null && listed != null) {
       const { content, ...rest } = await getFileFromDrive(listed.id)
       listed.file = { content: null, ...rest }
       this.cashFileContent(tag, content);
-      return this.store.getByTag(tag);
+      return this.entriesByTag(tag);
     } else {
       return storeTags;
     }
   }
 
-  //-----------------------------------------------------------------
+  async requestTags(): Promise<string[]>{
+
+    if( this.files == null ){
+      const files = await getAllAccessibleFiles();
+
+    }
+
+    return this.getTags();
+  }
 
   addFiles(files: ({ name: string, id: string })[]): void {
     files.forEach(({ name, id }) => {
       const idx = name.search(/-+[0123456789]*-TA.json/);
       if (idx > -1) {
         const tag = name.substring(0, idx)
-        this.files.push({ name, tag, id })
+        this.files?.push({ name, tag, id })
       }
     })
   }
@@ -108,12 +119,12 @@ class GoogleFilesCashe {
   }
 
   saveFile(tag: string) {
-    const entries = this.store.getByTag(tag);
-    const listed = this.files.find(v => v.tag == tag);
+    const entries = this.store.entriesByTag(tag);
+    const listed = this.files?.find(v => v.tag == tag);
 
     const content = {
       version: "0.1.0",
-      entries: entries?.entries.map(entry => ({
+      entries: entries.map(entry => ({
         count: entry.count,
         date: new Date(entry.date).toISOString
       }))
@@ -125,53 +136,4 @@ class GoogleFilesCashe {
       createAndSaveNewFile(tag, content);
     }
   }
-}
-
-/******
- * React Wrapper to the CasheStore to make useReducer ergonomic.
- * We use storeWriter as a reducer function and call it a day.
- ******/
-
-interface StoreWriteAction {
-  entry: StoreEntry
-}
-interface StoreUpdateAction {
-  oldEntry: StoreEntry,
-  newEntry: StoreEntry
-}
-interface StoreClearAction {
-  clear: boolean
-}
-interface StoreAddFiles {
-  files: ({ name: string, id: string })[]
-}
-
-type StoreAction =
-  StoreWriteAction
-  | StoreUpdateAction
-  | StoreClearAction
-  | StoreAddFiles
-
-type StoreWriter = (action: StoreAction) => GoogleFilesCashe
-
-function implStoreWriter(store: GoogleFilesCashe, action: StoreAction): GoogleFilesCashe {
-
-  // StoreWriteAction
-  if ("entry" in action) {
-    store.write(action.entry);
-  }
-  // StoreUpdateAction
-  if ("oldEntry" in action && "newEntry" in action) {
-    store.update(action.oldEntry, action.newEntry);
-  }
-  // StoreClearAction
-  if ("clear" in action && action.clear) {
-    store.clear();
-  }
-  // StoreAddFiles
-  if ("files" in action) {
-    store.addFiles(action.files)
-  }
-
-  return store;
 }

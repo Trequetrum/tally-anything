@@ -1,3 +1,4 @@
+import { StoreWriter } from "../store-reducer";
 import { appId, gapiClientInit, getOauthToken } from "./gdrive-login";
 export { showGoogleDrivePicker }
 
@@ -11,20 +12,20 @@ declare var google: any;
 let loadPickerApiPromise: null | Promise<boolean> = null
 function loadPickerApi(): Promise<boolean> {
 
-  if(loadPickerApiPromise == null){
-    loadPickerApiPromise = gapiClientInit.then(() => 
+  if (loadPickerApiPromise == null) {
+    loadPickerApiPromise = gapiClientInit.then(() =>
       new Promise((resolve, reject) => {
         gapi.load('picker', () => resolve(true));
-    
+
         // Error if the picker takes too long to load.
         const timer = setTimeout(
-          () => reject("Loading Google Picker Timed out after 5 seconds"), 
+          () => reject("Loading Google Picker Timed out after 5 seconds"),
           5000
         );
       })
     );
   }
-  
+
   return loadPickerApiPromise;
 }
 
@@ -36,13 +37,20 @@ function loadPickerApi(): Promise<boolean> {
  * google drive. Gives our app permission to read/edit those files as per
  * scropes requested by the oauthService.
  ***/
-async function showGoogleDrivePicker(): Promise<boolean> {
+async function showGoogleDrivePicker(onDocumentSelection: (documents: any) => void): Promise<boolean> {
 
-	const [oauthToken] = await Promise.all([
+  const [oauthToken] = await Promise.all([
     getOauthToken(),
     loadPickerApi()
   ])
-  
+
+  const pickerCallback = (response: any) => {
+    // Check that the user picked at least one file
+    if (response[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
+      onDocumentSelection(response[google.picker.Response.DOCUMENTS]);
+    }
+  }
+
   // Now that we have an OAuthToken, we can load a new google picker and display it.
   const view = new google.picker.View(google.picker.ViewId.DOCS);
   view.setMimeTypes("application/json");
@@ -58,19 +66,6 @@ async function showGoogleDrivePicker(): Promise<boolean> {
     .setCallback(pickerCallback)
     .build();
   picker.setVisible(true);
-			
-  return true
-}
 
-/***
- * Takes a response object from a google picker.
- * Emits new documents into the gloomtoolsFileLoad$ Subject (multicast Observable). 
- * Users can select multiple documents or they can keep opening new pickers to select documents.
- * To anyone observing gloomtoolsFileLoad$, this should look the same.
- */
-function pickerCallback(response: any): void {
-  // Check that the user picked at least one file
-  if (response[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
-    response[google.picker.Response.DOCUMENTS].forEach(/* Do Something */);
-  }
+  return true
 }

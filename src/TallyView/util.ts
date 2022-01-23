@@ -1,5 +1,5 @@
 
-import { Entry } from '../store'
+import { Entry } from '../StorageService/store'
 
 export function shallowEqual(a:any, b:any){
   return a === b || (
