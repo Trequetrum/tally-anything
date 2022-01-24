@@ -39,9 +39,6 @@ import {
 import { showGoogleDrivePicker } from './StorageService/GoogleDrive/gdrive-picker';
 import { StoreWriter } from './StorageService/store-reducer';
 import { TagState } from './App';
-import { LocalizationProvider, MobileDateTimePicker } from '@mui/lab';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import { NumericTextField } from './BasicComponents/NumericTextField';
 
 export { TopAppBar }
 
