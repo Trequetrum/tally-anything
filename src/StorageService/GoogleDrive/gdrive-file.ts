@@ -1,4 +1,4 @@
-import { getGapiClient } from './gdrive-login'
+import { getGapiClient, revokeAccess } from './gdrive-login'
 
 export type { GoogleFile }
 export { 
@@ -26,6 +26,24 @@ const folderName = 'TallyAnythingDocs';
 const fileNameAffix = '-TA';
 let folderId = ""
 
+function handleGoogleClientError(err: any){
+
+  if(err?.result?.error?.errors[0]?.reason == "insufficientPermissions"){
+    revokeAccess();
+
+    alert(`
+      Tally Anything has insufficent permissions. 
+      Don't worry, this app can only access files 
+      that you've created using this app, your data 
+      is safe. 
+      
+      To use this app, please grant the requested 
+      permissions while signing in`
+    );
+  }
+  throw err;
+}
+
 /*****
  * Goes to the user's google drive and tries to retrieve a
  * file with the given ID. This does not cache the file.
@@ -33,46 +51,52 @@ let folderId = ""
  async function getFileFromDrive(docID: string): Promise<GoogleFile> {
 
   const client = await getGapiClient();
-  const fileQuery = await client.drive.files.get({
+
+  return client.drive.files.get({
     fileId: docID,
     //'id, name, modifiedTime, capabilities(canRename, canDownload, canModifyContent)'
     fields: '*',
-  })
+  }).then((fileQuery:any) => {
 
-  if (!fileQuery.result.capabilities.canDownload) {
-    throw Error(
-      'Cannot Download File (capabilities.canDownload) - ' +
-      fileQuery.toString()
-    );
-  }
+    if (!fileQuery.result.capabilities.canDownload) {
+      throw Error(
+        'Cannot Download File (capabilities.canDownload) - ' +
+        fileQuery.toString()
+      );
+    }
 
-  const googleFile = {
-    id: fileQuery.result.id,
-    name: fileQuery.result.name,
-    canEdit: fileQuery.result.capabilities.canRename &&
-      fileQuery.result.capabilities.canModifyContent,
-    modifiedTime: fileQuery.result.modifiedTime,
-    content: null
-  } as GoogleFile
+    const googleFile = {
+      id: fileQuery.result.id,
+      name: fileQuery.result.name,
+      canEdit: fileQuery.result.capabilities.canRename &&
+        fileQuery.result.capabilities.canModifyContent,
+      modifiedTime: fileQuery.result.modifiedTime,
+      content: null
+    } as GoogleFile
 
-  const fileContent = await client.drive.files.get({
-    fileId: docID,
-    alt: 'media',
-  })
+    return client.drive.files.get({
+      fileId: docID,
+      alt: 'media',
+    }).then((fileContent:any) => ({googleFile, fileContent}));
 
-  try {
-    googleFile.content = JSON.parse(fileContent.body);
-  } catch (err: any) {
-    googleFile.content = {
-      error: {
-        type: 'Parsing',
-        message: err.message,
-      },
-    };
-  }
+  }).then((res:any) => {
 
-  return googleFile;
+    const {googleFile, fileContent} = res;
 
+    try {
+      googleFile.content = JSON.parse(fileContent.body);
+    } catch (err: any) {
+      googleFile.content = {
+        error: {
+          type: 'Parsing',
+          message: err.message,
+        },
+      };
+    }
+
+    return googleFile;
+
+  }).catch(handleGoogleClientError);
 }
 
 /***
@@ -88,32 +112,34 @@ async function getFolderId(): Promise<string> {
 
   const client = await getGapiClient();
 
-  const folderQuery = await client.drive.files.list({
+      
+  return client.drive.files.list({
     q: `mimeType='${folderType}' and name='${folderName}' and trashed=false`,
     fields: 'files(id)',
-  })
+  }).then((folderQuery:any) => {
 
-  const folders = folderQuery.result.files;
+    const folders = folderQuery.result.files;
 
-  // Check if we already have access to a folder with the right name
-  // I suppose there could be more than one folder. If so, emit the first one we find
-  if (folders && folders.length > 0) {
-    return folders[0].id;
-  }
+    // Check if we already have access to a folder with the right name
+    // I suppose there could be more than one folder. If so, emit the first one we find
+    if (folders && folders.length > 0) {
+      return folders[0].id;
+    }
 
-  // If we don't have access to such a folder, then create it and return the ID
-  const metadata = {
-    mimeType: folderType,
-    name: folderName,
-    fields: 'id',
-  };
+    // If we don't have access to such a folder, then create it and return the ID
+    const metadata = {
+      mimeType: folderType,
+      name: folderName,
+      fields: 'id',
+    };
 
-  const createdFolder = await client.drive.files.create({
-    resource: metadata,
-  })
+    return client.drive.files.create({
+      resource: metadata,
+    })
+  }).then((createdFolder:any) => 
+    createdFolder.result.id
 
-  return createdFolder.result.id;
-
+  ).catch(handleGoogleClientError);
 }
 
 /***
@@ -123,14 +149,15 @@ async function getFolderId(): Promise<string> {
 async function getAllAccessibleFiles(): Promise<({ id: string, name: string })[]> {
 
   const client = await getGapiClient();
-  const fileQuery = await client.drive.files.list({
+  return client.drive.files.list({
     q: "mimeType='application/json' and trashed = false", // and appProperties has { key='active' and value='true' }",
     fields: 'files(id, name)',
-  })
+  }).then((fileQuery:any) => 
+    fileQuery?.result?.files?.map(
+      (file: any) => ({ id: file.id, name: file.name })
+    ) || []
+  ).catch(handleGoogleClientError);
 
-  return fileQuery?.result?.files?.map(
-    (file: any) => ({ id: file.id, name: file.name })
-  ) || []
 }
 
 /**
