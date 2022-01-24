@@ -8,6 +8,9 @@ type StoreAction =
     type: "Write";
     payload: StoreEntry;
   } | {
+    type: "Delete";
+    payload: StoreEntry;
+  } | {
     type: "Update";
     payload: {
       oldEntry: StoreEntry;
@@ -27,6 +30,9 @@ function implStoreWriter(store: FileStoreCashe, action: StoreAction): FileStoreC
   switch(action.type) {
     case "Write":
       store.write(action.payload);
+      break;
+    case "Delete":
+      store.delete(action.payload);
       break;
     case "Update":
       store.update(action.payload.oldEntry, action.payload.newEntry)

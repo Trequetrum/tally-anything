@@ -1,6 +1,5 @@
 
 import { Box } from '@mui/material';
-import * as React from 'react';
 
 import { Entry } from '../StorageService/store'
 import { StoreWriter } from '../StorageService/store-reducer';
@@ -94,7 +93,7 @@ function TallyView(
           <SummaryTable 
             key="st" 
             dispList={dispList} 
-          />,
+          />
           <EntriesTable 
             key="et" 
             tag={tag}
@@ -102,7 +101,6 @@ function TallyView(
             storeDispatch={storeDispatch}
           />
         </Box>
-        
     </div>
   )
 

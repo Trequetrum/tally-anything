@@ -15,7 +15,8 @@ interface Entry {
 interface StoreCashe {
   // Basic Operations
   read(): StoreEntry[];
-  write({ tag, count, date }: StoreEntry): void;
+  write(entry: StoreEntry): void;
+  delete(entry: StoreEntry): void;
   update(oldEntry: StoreEntry, newEntry: StoreEntry): void;
   clear(): void;
 
@@ -56,6 +57,16 @@ class MapStoreCashe implements StoreCashe {
       this.store.set(tag, mTag);
     }
     mTag.set(date, count);
+  }
+
+  delete({ tag, date }: StoreEntry){
+    const tagMap = this.store.get(tag);
+    if(tagMap != null){
+      tagMap.delete(date);
+      if (tagMap.size < 1){
+        this.store.delete(tag)
+      }
+    }
   }
 
   update(oldEntry: StoreEntry, newEntry: StoreEntry) {

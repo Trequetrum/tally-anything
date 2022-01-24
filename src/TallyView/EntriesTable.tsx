@@ -59,8 +59,6 @@ function EntriesTable(
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [editDialogState, setEditDialogState] = React.useState<"Closed" | StoreEntry>("Closed");
 
-  console.log(">>>>> rowsPerPage:", rowsPerPage);
-
   const handleRequestSort = (property: keyof Entry) => () => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -72,7 +70,6 @@ function EntriesTable(
   };
 
   const handleChangeRowsPerPage = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("Handle setRowsPerPage:", parseInt(target.value, 10));
     setRowsPerPage(parseInt(target.value, 10));
     setPage(0);
   };
@@ -199,6 +196,7 @@ function EditEntryDialog(
   const [dateTimeValue, setDateTimeValue] = React.useState<Date | null>(null);
 
   const handleClose = () => setState("Closed")
+
   const handleUpdate = () => {
     if (open) {
 
@@ -219,37 +217,39 @@ function EditEntryDialog(
         });
       }
 
-      handleClose()
+      handleClose();
 
+    }
+  }
+
+  const handleDelete = () => {
+    if (open) {
+      storeDispatch({
+        type: "Delete",
+        payload: state
+      });
+
+      handleClose();
     }
   }
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Edit Tally Entry</DialogTitle>
+      <DialogTitle>Edit {open ? state.tag : ""}</DialogTitle>
       <DialogContent sx={{
-        minWidth: 350,
-        minHeight: 300,
         rowGap: 2,
         display: 'flex',
         flexDirection: 'column'
       }}>
-        <TextField
-          sx={{ marginTop: 2 }}
-          id="newTagField"
-          label={`Current thing is ${open ? state.tag : ""}, update?`}
-          variant="outlined"
-          onChange={({ target }: any) => setTagField(target.value)}
-        />
         <NumericTextField
           id="count_by_numbers"
-          label={`Current Tally is ${open ? state.count : ""}, update?`}
+          label={`Update Tally: ${open ? state.count : ""} ?`}
           onChange={setNum}
         />
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <MobileDateTimePicker
             renderInput={(props) => <TextField {...props} />}
-            label="DateTimePicker"
+            label='Update Date & Time'
             value={dateTimeValue}
             onChange={(newValue) => {
               setDateTimeValue(newValue);
@@ -259,6 +259,7 @@ function EditEntryDialog(
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleDelete}>Delete</Button>
         <Button onClick={handleUpdate}>Update</Button>
       </DialogActions>
     </Dialog>

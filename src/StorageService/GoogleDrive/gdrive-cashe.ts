@@ -23,6 +23,11 @@ class GoogleFilesCashe implements FileStoreCashe {
     this.saveFile(entry.tag);
   }
 
+  delete(entry: StoreEntry): void {
+    this.store.delete(entry);
+    this.saveFile(entry.tag);
+  }
+
   update(oldEntry: StoreEntry, newEntry: StoreEntry): void {
     this.store.update(oldEntry, newEntry);
 

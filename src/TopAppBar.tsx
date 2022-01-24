@@ -181,8 +181,6 @@ function NewThingDialog(
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Tally Something New</DialogTitle>
       <DialogContent sx={{
-        minWidth: 350,
-        minHeight: 300,
         rowGap: 2,
         display: 'flex',
         flexDirection: 'column'
