@@ -1,4 +1,5 @@
 
+import { Box } from '@mui/material';
 import * as React from 'react';
 
 import { Entry } from '../StorageService/store'
@@ -86,21 +87,22 @@ function TallyView(
     <div>
       <h1>{tag}</h1>
       <TallyWriter tag={tag} storeDispatch={storeDispatch} />
-      {
-        entries == "Loading" ? 
-        <h4>Loading Entries</h4> :
-        entries.length < 1 ?
-        [] :
-        [
-          <SummaryTable key="st" dispList={dispList} />,
+        <h4 style={entries == "Loading" ? {} : { display: 'none' }}>
+          Loading Entries
+        </h4>
+        <Box sx={{ display: entries?.length > 0 ? 'block' : 'none'}} >
+          <SummaryTable 
+            key="st" 
+            dispList={dispList} 
+          />,
           <EntriesTable 
             key="et" 
             tag={tag}
-            entries={entries as Entry[]} 
+            entries={entries == "Loading" ? [] : entries} 
             storeDispatch={storeDispatch}
           />
-        ]
-      }
+        </Box>
+        
     </div>
   )
 

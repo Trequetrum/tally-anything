@@ -59,6 +59,8 @@ function EntriesTable(
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [editDialogState, setEditDialogState] = React.useState<"Closed" | StoreEntry>("Closed");
 
+  console.log(">>>>> rowsPerPage:", rowsPerPage);
+
   const handleRequestSort = (property: keyof Entry) => () => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -70,6 +72,7 @@ function EntriesTable(
   };
 
   const handleChangeRowsPerPage = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Handle setRowsPerPage:", parseInt(target.value, 10));
     setRowsPerPage(parseInt(target.value, 10));
     setPage(0);
   };
