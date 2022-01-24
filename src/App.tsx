@@ -36,11 +36,11 @@ function App({ globalStore }: { globalStore: FileStoreCashe }): JSX.Element {
   const storeDispatch = _storeDispatch as StoreWriter
 
   const logginState = useLogginManager(storeWrapper.store);
-  const [tagState, setTagSate] = useLoadingTags(storeWrapper)
+  const [tagState, setTagSate] = useLoadingTags(storeWrapper, logginState.isLoggedIn)
 
   const [tagList, setTagList] = React.useState<"Loading" | string[]>("Loading")
   React.useEffect(() => {
-    if(logginState.isLoggedIn){
+    if (logginState.isLoggedIn) {
       storeWrapper.store.requestTags().then(setTagList);
     }
   }, [storeWrapper, logginState])
@@ -55,22 +55,22 @@ function App({ globalStore }: { globalStore: FileStoreCashe }): JSX.Element {
       />
       {
         !logginState.isLoggedIn ?
-        <Box sx={{ display: 'flex', justifyContent: 'center'}}>
-          <h4>Login to Begin! <CallMadeIcon /></h4>
-        </Box> 
-        :
-        tagState.tag == null ?
-        <Box sx={{ display: 'flex', justifyContent: 'center'}}>
-          <h4><CallMadeIcon sx={{ transform: 'rotate(270deg)' }} /> Select A Thing To Tally</h4> 
-        </Box>
-        :
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <TallyView
-            tag={tagState.tag}
-            entries={tagState.entries}
-            storeDispatch={storeDispatch}
-          />
-        </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <h4>Login to Begin! <CallMadeIcon /></h4>
+          </Box>
+          :
+          tagState.tag == null ?
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <h4><CallMadeIcon sx={{ transform: 'rotate(270deg)' }} /> Select A Thing To Tally</h4>
+            </Box>
+            :
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <TallyView
+                tag={tagState.tag}
+                entries={tagState.entries}
+                storeDispatch={storeDispatch}
+              />
+            </Box>
       }
     </div>
   );
@@ -98,10 +98,10 @@ function useLogginManager(store: FileStoreCashe) {
   return logginState
 }
 
-function useLoadingTags(storeWrapper: {store: FileStoreCashe}): [
-  TagState,
-  (a: TagState) => void
-] {
+function useLoadingTags(
+  storeWrapper: { store: FileStoreCashe },
+  isLoggedIn: boolean
+): [TagState, (a: TagState) => void] {
 
   const [tagState, setTagSate] = React.useState({
     tag: null,
@@ -113,7 +113,7 @@ function useLoadingTags(storeWrapper: {store: FileStoreCashe}): [
 
   // If the store has updated in any way, reload entries
   React.useEffect(
-    () => setTagSate(a => ({tag:a.tag, entries: "Loading"})), 
+    () => setTagSate(a => ({ tag: a.tag, entries: "Loading" })),
     [storeWrapper]
   );
 
@@ -129,5 +129,45 @@ function useLoadingTags(storeWrapper: {store: FileStoreCashe}): [
     }
   }, [tagState, storeWrapper]);
 
-  return [tagState, setTagSate]
+  // Set and read browser cookies to save/load default tag
+  React.useEffect(() => {
+    if (isLoggedIn && tagState.tag == null) {
+      const cookieTag = getCookie("tag");
+      if (cookieTag.length > 0) {
+        storeWrapper.store.requestTags().then(tags => {
+          if(tags.includes(cookieTag)){
+            setTagSate({
+              tag: cookieTag,
+              entries: "Loading"
+            });
+          }
+        })
+      }
+    } else if (isLoggedIn && tagState.tag != null){
+      setCookie("tag", tagState.tag);
+    }
+  }, [storeWrapper,tagState, isLoggedIn]);
+
+  return [tagState, setTagSate];
+}
+
+function setCookie(key: string, value: string) {
+  const aboutAYearMs = 31536000000;
+  const expires = new Date(Date.now() + aboutAYearMs).toUTCString();
+  document.cookie = `${key}=${value};expires=${expires};path=/`;
+}
+
+function getCookie(key: string): string {
+  let name = key + "=";
+  let ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
 }

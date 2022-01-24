@@ -1,13 +1,24 @@
-import { assert } from "console";
-import { MapStoreCashe, StoreCashe, StoreEntry, FileStoreCashe, Entry } from "../store";
-import { createAndSaveNewFile, getAllAccessibleFiles, getFileFromDrive, GoogleFile, saveFile } from "./gdrive-file";
+import { 
+  MapStoreCashe, 
+  StoreCashe, 
+  StoreEntry, 
+  FileStoreCashe, 
+  Entry 
+} from "../store";
+
+import { 
+  createAndSaveNewFile, 
+  getAllAccessibleFiles, 
+  getFileFromDrive, 
+  saveFile 
+} from "./gdrive-file";
 
 export { GoogleFilesCashe }
 
 class GoogleFilesCashe implements FileStoreCashe {
 
   private store: StoreCashe
-  private files: null | ({ name: string, tag: string, id: string, file?: GoogleFile })[]
+  private files: null | ({ name: string, tag: string, id: string })[]
 
   constructor() {
     this.store = new MapStoreCashe();
@@ -55,32 +66,34 @@ class GoogleFilesCashe implements FileStoreCashe {
   }
 
   async requestBytag(tag: string): Promise<Entry[]> {
-    const storeTags = this.entriesByTag(tag);
+    const entries = this.entriesByTag(tag);
+    await this.casheAllAccessibleFiles();
     const listed = this.files?.find(v => v.tag == tag);
-    if (storeTags.length < 1 && listed == null) {
+    if (entries.length < 1 && listed == null) {
       return [];
-    } else if (storeTags.length < 1 && listed != null) {
-      const { content, ...rest } = await getFileFromDrive(listed.id)
-      listed.file = { content: null, ...rest }
+    } else if (entries.length < 1 && listed != null) {
+      const { content } = await getFileFromDrive(listed.id);
       this.cashFileContent(tag, content);
       return this.entriesByTag(tag);
     } else {
-      return storeTags;
+      return entries;
     }
   }
 
   async requestTags(): Promise<string[]> {
+    await this.casheAllAccessibleFiles();
+    return this.getTags();
+  }
 
+  async casheAllAccessibleFiles() {
     if (this.files == null) {
       const files = await getAllAccessibleFiles();
       this.addFiles(files);
     }
-
-    return this.getTags();
   }
 
   addFiles(files: ({ name: string, id: string })[]): void {
-    if ( files.length < 1){
+    if (files.length < 1) {
       return;
     }
 
@@ -95,9 +108,9 @@ class GoogleFilesCashe implements FileStoreCashe {
         const prevIdx = this.files?.findIndex(v => v.tag == tag);
         const newMetaFile = { name, tag, id };
 
-        if(prevIdx == -1){
+        if (prevIdx == -1) {
           this.files.push(newMetaFile);
-        }else{
+        } else {
           this.files[prevIdx] = newMetaFile;
         }
       }

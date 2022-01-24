@@ -16,7 +16,6 @@ export { SummaryTable }
 function SummaryTable(params: {
   dispList: { label: string, value: number }[]
 }) {
-
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>

@@ -189,19 +189,15 @@ function EditEntryDialog(
 ) {
 
   const open = state != "Closed"
-
-  const [tagField, setTagField] = React.useState("")
   const [num, setNum] = React.useState<NumericFieldOutput>("Empty")
-
   const [dateTimeValue, setDateTimeValue] = React.useState<Date | null>(null);
-
   const handleClose = () => setState("Closed")
 
   const handleUpdate = () => {
     if (open) {
 
       const newEntry = {
-        tag: tagField.length > 0 ? tagField : state.tag,
+        tag: state.tag,
         count: typeof num == 'number' ?
           num :
           state.count,
@@ -235,15 +231,16 @@ function EditEntryDialog(
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Edit {open ? state.tag : ""}</DialogTitle>
+      <DialogTitle>Edit {open ? state.tag : ""} Entry</DialogTitle>
       <DialogContent sx={{
         rowGap: 2,
         display: 'flex',
         flexDirection: 'column'
       }}>
         <NumericTextField
+          sx={{marginTop: 1}}
           id="count_by_numbers"
-          label={`Update Tally: ${open ? state.count : ""} ?`}
+          label={`Update Tally: ${open ? state.count : ""}`}
           onChange={setNum}
         />
         <LocalizationProvider dateAdapter={AdapterDateFns}>
