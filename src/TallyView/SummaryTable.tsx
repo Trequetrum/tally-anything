@@ -9,7 +9,7 @@ import {
   Paper
 } from '@mui/material';
 
-import { tallyRound } from './util';
+import { tallyRound } from '../util';
 
 export { SummaryTable }
 

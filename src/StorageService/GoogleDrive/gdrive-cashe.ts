@@ -1,3 +1,4 @@
+import { formatISO, parseISO } from "date-fns";
 import { 
   MapStoreCashe, 
   StoreCashe, 
@@ -135,9 +136,9 @@ class GoogleFilesCashe implements FileStoreCashe {
       content.entries.forEach((entry: any) => {
         if ("count" in entry && !isNaN(entry.count)) {
           if ("date" in entry) {
-            const dateMs = Date.parse(entry.date);
-            if (dateMs > 0) {
-              this.store.write({ tag, count: entry.count, date: dateMs });
+            const dateObj = parseISO(entry.date);
+            if (!isNaN(dateObj.getTime())) {
+              this.store.write({ tag, count: entry.count, date: dateObj });
             } else {
               console.error(tag + " File Content Failed To Parse Date", content, entry.date);
             }
@@ -161,7 +162,7 @@ class GoogleFilesCashe implements FileStoreCashe {
       version: "0.1.0",
       entries: entries.map(entry => ({
         count: entry.count,
-        date: new Date(entry.date).toISOString()
+        date: formatISO(entry.date)
       }))
     }
 

@@ -33,7 +33,7 @@ import {
   getComparator,
   dateString,
   shallowEqual
-} from './util';
+} from '../util';
 import {
   NumericFieldOutput,
   NumericTextField

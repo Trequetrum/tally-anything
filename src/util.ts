@@ -1,5 +1,5 @@
 
-import { Entry } from '../StorageService/store'
+import { Entry } from './StorageService/store'
 
 export function shallowEqual(a:any, b:any){
   return a === b || (
@@ -10,16 +10,15 @@ export function shallowEqual(a:any, b:any){
   )
 }
 
-export function dateString(date: number): string {
-  const a = new Intl.DateTimeFormat(undefined, {
+export function dateString(date: Date): string {
+  return new Intl.DateTimeFormat(undefined, {
     day: "numeric",
     year: "numeric",
     month: "numeric",
     hour: "numeric",
     minute: "numeric",
     second: "numeric"
-  });
-  return a.format(new Date(date))
+  }).format(date);
 }
 
 export function descendingComparator<T>(a: T, b: T, orderBy: keyof T): 1 | -1 | 0 {
@@ -36,8 +35,8 @@ export function getComparator<Key extends keyof any>(
   order: 'asc' | 'desc',
   orderBy: Key,
 ): (
-    a: { [key in Key]: number | string },
-    b: { [key in Key]: number | string },
+    a: { [key in Key]: number | string | Date },
+    b: { [key in Key]: number | string | Date },
   ) => number {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
@@ -55,10 +54,18 @@ export function tallyRound(a: number): number {
 export function mergeDays(a: Entry[]): Entry[] {
   const dayInMs = 86400000
   const mapo = new Map<number, number>();
-  for (let v of a) {
-    const newDate = Math.floor(v.date / dayInMs) * dayInMs
-    const prev = mapo.get(newDate) || 0;
-    mapo.set(newDate, prev + v.count);
+  for (let {date, count} of a) {
+    const dayMs = new Date(
+      date.getFullYear(), 
+      date.getMonth(), 
+      date.getDate()
+    ).getTime();
+
+    const prev = mapo.get(dayMs) || 0;
+    mapo.set(dayMs, prev + count);
   }
-  return Array.from(mapo, ([date, count]) => ({ date, count }));
+  return Array.from(
+    mapo, 
+    ([date, count]) => ({ date: new Date(date), count })
+  );
 }

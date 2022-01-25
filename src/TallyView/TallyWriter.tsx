@@ -48,7 +48,7 @@ function TallyWriter(
     
     storeDispatch({
       type: "Write", 
-      payload: { tag, date: Date.now(), count }
+      payload: { tag, date: new Date(), count }
     });
    
   }

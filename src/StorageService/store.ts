@@ -1,15 +1,13 @@
 export type { StoreEntry, Entry, StoreCashe, FileStoreCashe }
 export { MapStoreCashe }
 
-interface StoreEntry {
-  tag: string,
-  count: number,
-  date: number
-}
-
 interface Entry {
   count: number,
-  date: number
+  date: Date
+}
+
+interface StoreEntry extends Entry {
+  tag: string
 }
 
 interface StoreCashe {
@@ -36,41 +34,42 @@ interface FileStoreCashe extends StoreCashe {
 }
 
 class MapStoreCashe implements StoreCashe {
-  private store: Map<string, Map<number, number>>
+  private store: Map<string, Entry[]>
 
   constructor() {
     this.store = new Map();
   }
 
   read(): StoreEntry[] {
-    let entries: StoreEntry[] = [];
-    this.store.forEach((m, tag) =>
-      m.forEach((count, date) => entries.push({ tag, date, count }))
+    let retEntries: StoreEntry[] = [];
+    this.store.forEach((tagEntries, tag) =>
+      tagEntries.forEach(({ count, date }) => retEntries.push({ tag, date, count }))
     );
-    return entries;
+    return retEntries;
   }
 
   write({ tag, count, date }: StoreEntry) {
     let mTag = this.store.get(tag);
     if (mTag == null) {
-      mTag = new Map();
-      this.store.set(tag, mTag);
+      this.store.set(tag, [{ date, count }]);
+    } else {
+      mTag.push({ date, count });
     }
-    mTag.set(date, count);
   }
 
-  delete({ tag, date }: StoreEntry){
-    const tagMap = this.store.get(tag);
-    if(tagMap != null){
-      tagMap.delete(date);
-      if (tagMap.size < 1){
-        this.store.delete(tag)
-      }
+  delete({ tag, count, date }: StoreEntry) {
+    const mTag = this.store.get(tag);
+
+    if (mTag != null) {
+      this.store.set(
+        tag,
+        mTag.filter(v => !equalEntry(v, {date, count}))
+      );
     }
   }
 
   update(oldEntry: StoreEntry, newEntry: StoreEntry) {
-    this.store.get(oldEntry.tag)?.delete(oldEntry.date);
+    this.delete(oldEntry);
     this.write(newEntry);
   }
 
@@ -79,14 +78,21 @@ class MapStoreCashe implements StoreCashe {
   }
 
   entriesByTag(tag: string): Entry[] {
-    return Array.from(
-      this.store.get(tag) || [],
-      ([date, count]) => ({ date, count })
-    );
+    return this.store.get(tag) || []
   }
 
   clear() {
     this.store = new Map();
   }
 
+}
+
+function equalEntry(a: Entry, b: Entry): boolean {
+  return a.count == b.count && a.date.getTime() == b.date.getTime();
+}
+
+function equalStoreEntry(a: StoreEntry, b: StoreEntry): boolean {
+  return a.tag === b.tag &&
+    a.count === b.count &&
+    a.date.getTime() === b.date.getTime();
 }
