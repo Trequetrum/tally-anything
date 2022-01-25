@@ -1,5 +1,7 @@
+import { compareDesc } from "date-fns";
+
 export type { StoreEntry, Entry, StoreCashe, FileStoreCashe }
-export { MapStoreCashe }
+export { MapStoreCashe, equalEntry, equalStoreEntry, compareEntryTimeDesc }
 
 interface Entry {
   count: number,
@@ -95,4 +97,8 @@ function equalStoreEntry(a: StoreEntry, b: StoreEntry): boolean {
   return a.tag === b.tag &&
     a.count === b.count &&
     a.date.getTime() === b.date.getTime();
+}
+
+function compareEntryTimeDesc(a: Entry | StoreEntry, b: Entry | StoreEntry): number{
+  return compareDesc(a.date, b.date);
 }

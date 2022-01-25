@@ -7,18 +7,20 @@ import {
 } from '@mui/material';
 import { MsgAlert } from '../BasicComponents/MsgAlert';
 import { StoreWriter } from '../StorageService/store-reducer';
+import { sum } from '../util';
 
 export { TallyWriter }
 
 function TallyWriter(
-  { tag, storeDispatch }:
+  { tag, tallyButtons, storeDispatch }:
     {
       tag: string,
+      tallyButtons: number[],
       storeDispatch: StoreWriter
     }
 ) {
 
-  const [alertDialogState, setAlertDialogState] = React.useState({ 
+  const [alertDialogState, setAlertDialogState] = React.useState({
     open: false,
     title: "",
     message: ""
@@ -28,44 +30,44 @@ function TallyWriter(
 
   const tallyClick = (count: number) => () => {
 
-    if (count == 0 && num === "Empty"){
+    if (count == 0 && num === "Empty") {
       setAlertDialogState({
         open: true,
         title: "Tally Not Recorded",
         message: "Custom field was left empty"
       });
       return;
-    }else if (count == 0 && num === "NaN"){
+    } else if (count == 0 && num === "NaN") {
       setAlertDialogState({
         open: true,
         title: "Tally Not Recorded",
         message: "Custom field does not contain a number"
       });
       return;
-    }else if (count == 0){
+    } else if (count == 0) {
       count = num as number
     }
-    
+
     storeDispatch({
-      type: "Write", 
+      type: "Write",
       payload: { tag, date: new Date(), count }
     });
-   
+
   }
 
-  const prefabClicks = [1, 5, 10, 15, 20, 25, 30, 50]
+  const prefabClicks = organiseTallyButtons(tallyButtons);
 
   return (
     <Box sx={{
       display: 'grid',
-      gridTemplate: "'t1 t5 t10 t15' 't20 t25 t30 t50' 'txt txt txt tAny'",
+      gridTemplate: "'t0 t1 t2 t3' 't4 t5 t6 t7' 'txt txt txt tAny'",
       gridGap: 7,
       marginBottom: 2
     }}>
-      {prefabClicks.map(n =>
+      {prefabClicks.map((n, i) =>
         <Button
           key={`Tally${n}`}
-          sx={{ gridArea: `t${n}` }}
+          sx={{ gridArea: `t${i}` }}
           variant="outlined"
           onClick={tallyClick(n)}
         >
@@ -85,7 +87,49 @@ function TallyWriter(
       >
         Tally
       </Button>
-      <MsgAlert state={alertDialogState} setState={setAlertDialogState}/>
+      <MsgAlert state={alertDialogState} setState={setAlertDialogState} />
     </Box>
   )
+}
+
+function organiseTallyButtons(tallyButtons: number[]): number[] {
+  let buttons = Array.from(new Set(tallyButtons));
+
+  if (buttons.length > 8) {
+    buttons = buttons.slice(0, 8);
+  } else {
+    while (buttons.length < 8) {
+      buttons.push(fitButton("higher", buttons));
+      if (buttons.length < 8) {
+        const include = fitButton("lower", buttons);
+        if (include > 0) {
+          buttons.push(include)
+        }
+      }
+    }
+  }
+
+  return buttons.sort((a: number, b: number) => a - b);
+}
+
+function fitButton(type: "higher" | "lower", tallyButtons: number[]): number {
+  const avg = tallyButtons.length > 0 ? sum(tallyButtons) / tallyButtons.length : 0;
+  const trunc = Math.floor(avg / 5) * 5;
+
+  let trying = trunc;
+  let include: null | number = null;
+  while (include == null) {
+    if (tallyButtons.includes(trying == 0 ? 1 : trying)) {
+      if (type === "higher") {
+        trying += 5;
+      } else {
+        trying -= 5;
+      }
+    } else {
+      include = trying == 0 ? 1 : trying;
+    }
+  }
+
+  return include;
+
 }

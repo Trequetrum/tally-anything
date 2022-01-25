@@ -2,7 +2,7 @@
 import { Box } from '@mui/material';
 import { getDayOfYear, isThisMonth, isThisWeek, isThisYear } from 'date-fns'
 
-import { Entry } from '../StorageService/store'
+import { compareEntryTimeDesc, Entry } from '../StorageService/store'
 import { StoreWriter } from '../StorageService/store-reducer';
 import { EntriesTable } from './EntriesTable'
 import { SummaryTable } from './SummaryTable'
@@ -22,14 +22,16 @@ function TallyView(
 
   const dispList = entries == "Loading" ? [] : summary(entries);
 
+  const tallyButtons = entries == "Loading" ? [] : decideWritterButtons(entries);
+
   return (
     <div>
       <h1>{tag}</h1>
-      <TallyWriter tag={tag} storeDispatch={storeDispatch} />
+      <TallyWriter tag={tag} tallyButtons={tallyButtons} storeDispatch={storeDispatch} />
       <h4 style={entries == "Loading" ? {} : { display: 'none' }}>
         Loading Entries
       </h4>
-      <Box sx={{ display: entries?.length > 0 ? 'block' : 'none' }} >
+      <Box sx={{ display: entries != "Loading" && entries.length > 0 ? 'block' : 'none' }} >
         <SummaryTable
           key="st"
           dispList={dispList}
@@ -103,4 +105,14 @@ function summary(entries: Entry[]): ({ label: string, value: number })[] {
   });
 
   return dispList;
+}
+
+function decideWritterButtons(entries: Entry[]): number[] {
+  let includes = new Set<number>();
+  entries.sort(compareEntryTimeDesc).forEach(({count}) => {
+    if(includes.size < 8){
+      includes.add(count);
+    }
+  })
+  return Array.from(includes);
 }
