@@ -217,7 +217,11 @@ function UserLoginMenu(
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setMenuAnchorEl(event.currentTarget);
   };
-  const handleMenuClose = () => setMenuAnchorEl(null);
+
+  const closeMenu = (fn?: () => void) => () => {
+    if (fn) fn();
+    setMenuAnchorEl(null);
+  }
 
   const pickerCallback = (documents: any[]) => {
     storeDispatch({
@@ -246,34 +250,31 @@ function UserLoginMenu(
         id="app-bar-acc-options"
         anchorEl={menuAnchorEl}
         open={isMenuOpen}
-        onClose={handleMenuClose}
+        onClose={closeMenu()}
       >
         {
           logginState.isLoggedIn ?
-            [<MenuItem key="logout" onClick={() => {
-              logout();
-              handleMenuClose();
-            }}>
+            [<MenuItem key="logout" onClick={
+              closeMenu(logout)
+            }>
               <ListItemIcon>
                 <LogoutIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText inset>Logout</ListItemText>
             </MenuItem>,
 
-            <MenuItem key="grant" onClick={() => {
-              showGoogleDrivePicker(pickerCallback);
-              handleMenuClose();
-            }}>
+            <MenuItem key="grant" onClick={
+              closeMenu(() => showGoogleDrivePicker(pickerCallback))
+            }>
               <ListItemIcon>
                 <AddToDriveIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText inset>Grant Files</ListItemText>
             </MenuItem>,
 
-            <MenuItem key="revoke" onClick={() => {
-              revokeAccess();
-              handleMenuClose();
-            }}>
+            <MenuItem key="revoke" onClick={
+              closeMenu(revokeAccess)
+            }>
               <ListItemIcon>
                 <LockResetIcon fontSize="small" />
               </ListItemIcon>
@@ -281,24 +282,25 @@ function UserLoginMenu(
             </MenuItem>
 
             ] :
-            <MenuItem onClick={() => {
-              getOAuthInstance();
-              handleMenuClose();
-            }}>
+            <MenuItem onClick={
+              closeMenu(getOAuthInstance)
+            }>
               <ListItemIcon>
                 <LoginIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText inset>Login</ListItemText>
             </MenuItem>
         }
-        <MenuItem onClick={() => setLoggerOpen(true)}>
+        <MenuItem onClick={
+          closeMenu(() => setLoggerOpen(true))
+        }>
           <ListItemIcon>
             <InfoIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText inset>Log</ListItemText>
         </MenuItem>
       </Menu>
-      <LoggerDialog open={loggerOpen} setOpen={setLoggerOpen}/>
+      <LoggerDialog open={loggerOpen} setOpen={setLoggerOpen} />
     </Box>
   )
 }

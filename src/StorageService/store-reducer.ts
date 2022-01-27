@@ -27,7 +27,7 @@ type StoreWriter = (action: StoreAction) => FileStoreCashe;
 
 function implStoreWriter(store: FileStoreCashe, action: StoreAction): FileStoreCashe {
 
-  switch(action.type) {
+  switch (action.type) {
     case "Write":
       store.write(action.payload);
       break;
