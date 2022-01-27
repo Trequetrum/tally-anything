@@ -9,8 +9,6 @@ export {
   saveFileMetadata
 }
 
-//declare var google: any;
-
 const JSON_MIME_TYPE = "application/json"
 
 interface GoogleFile {
@@ -26,6 +24,12 @@ const folderName = 'TallyAnythingDocs';
 const fileNameAffix = '-TA';
 let folderId = ""
 
+/********************************************************************
+ * Errors arn't really managed yet, this creates an alert with the
+ * error and then re-throws. This is fine for a hobby project, but
+ * should probably be imporved anyway as many of these errors should
+ * be recoverable.
+ *******************************************************************/
 function handleGoogleClientError(err: any){
 
   if(err?.result?.error?.errors[0]?.reason == "insufficientPermissions"){
@@ -41,13 +45,14 @@ function handleGoogleClientError(err: any){
       permissions while signing in`
     );
   }
+  
   throw err;
 }
 
-/*****
- * Goes to the user's google drive and tries to retrieve a
- * file with the given ID. This does not cache the file.
- *****/
+/********************************************************************
+ * Goes to the user's google drive and tries to retrieve a file with 
+ * the given ID.
+ *******************************************************************/
  async function getFileFromDrive(docID: string): Promise<GoogleFile> {
 
   const client = await getGapiClient();
@@ -99,10 +104,10 @@ function handleGoogleClientError(err: any){
   }).catch(handleGoogleClientError);
 }
 
-/***
+/********************************************************************
  * Get the google drive folder id where we store our files.
  * Performs the nessesary calls to find or create the folder.
- ***/
+ *******************************************************************/
 async function getFolderId(): Promise<string> {
 
   // If we already have an ID for the folder, this is very straight forward.
@@ -135,17 +140,15 @@ async function getFolderId(): Promise<string> {
 
     return client.drive.files.create({
       resource: metadata,
-    })
-  }).then((createdFolder:any) => 
-    createdFolder.result.id
+    }).then((createdFolder:any) => createdFolder.result.id);
 
-  ).catch(handleGoogleClientError);
+  }).catch(handleGoogleClientError);
 }
 
-/***
- * Get's all JSON files that the user has given this app
- * access to. Doesn't verify contents or anything.
- ***/
+/********************************************************************
+ * Get's all JSON files that the user has given this app access to. 
+ * Doesn't verify contents or anything.
+ *******************************************************************/
 async function getAllAccessibleFiles(): Promise<({ id: string, name: string })[]> {
 
   const client = await getGapiClient();
@@ -160,11 +163,11 @@ async function getAllAccessibleFiles(): Promise<({ id: string, name: string })[]
 
 }
 
-/**
+/********************************************************************
  * Update this file's metadata only.
  * This updates the file's
  *      - name
- */
+ *******************************************************************/
 async function saveFileMetadata(file: GoogleFile): Promise<boolean> {
   const client = await getGapiClient();
 

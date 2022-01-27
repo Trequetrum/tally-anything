@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 
 import {
+  Info as InfoIcon,
   Menu as MenuIcon,
   Login as LoginIcon,
   Logout as LogoutIcon,
@@ -39,6 +40,7 @@ import {
 import { showGoogleDrivePicker } from './StorageService/GoogleDrive/gdrive-picker';
 import { StoreWriter } from './StorageService/store-reducer';
 import { TagState } from './App';
+import { Logger } from './BasicComponents/Logger';
 
 export { TopAppBar }
 
@@ -61,8 +63,8 @@ function TopAppBar(
         <Toolbar>
           {
             logginState.isLoggedIn ?
-            <TagSelectionMenu tags={tags} setTagSate={setTagSate} /> :
-            []
+              <TagSelectionMenu tags={tags} setTagSate={setTagSate} /> :
+              []
           }
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             TALLY
@@ -120,21 +122,21 @@ function TagSelectionMenu(
                 </ListItemIcon>
                 <ListItemText inset>...loading</ListItemText>
               </MenuItem>
-            :
-            tags.map(tag =>
-              <MenuItem
-                key={tag}
-                onClick={() => {
-                  setTagSate({ tag, entries: "Loading" });
-                  handleMenuClose();
-                }}
-              >
-                <ListItemIcon>
-                  <PlaylistAddCheckCircleIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText inset>{tag}</ListItemText>
-              </MenuItem>
-            )
+              :
+              tags.map(tag =>
+                <MenuItem
+                  key={tag}
+                  onClick={() => {
+                    setTagSate({ tag, entries: "Loading" });
+                    handleMenuClose();
+                  }}
+                >
+                  <ListItemIcon>
+                    <PlaylistAddCheckCircleIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText inset>{tag}</ListItemText>
+                </MenuItem>
+              )
           }
           <Divider />
           <MenuItem onClick={() => {
@@ -148,9 +150,9 @@ function TagSelectionMenu(
           </MenuItem>
         </MenuList>
       </Menu>
-      <NewThingDialog 
-        open={newTagDialogOpen} 
-        setOpen={setNewTagDialogOpen} 
+      <NewThingDialog
+        open={newTagDialogOpen}
+        setOpen={setNewTagDialogOpen}
         setTagSate={setTagSate}
       />
     </Box>
@@ -170,7 +172,7 @@ function NewThingDialog(
 
   const handleClose = () => setOpen(false)
   const handleUpdate = () => {
-    setTagSate({tag: tagField, entries:[]});
+    setTagSate({ tag: tagField, entries: [] });
     handleClose();
   }
 
@@ -223,6 +225,8 @@ function UserLoginMenu(
       payload: documents.map((v: any) => ({ id: v.id, name: v.name }))
     })
   }
+
+  const [loggerOpen, setLoggerOpen] = React.useState(false);
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -287,7 +291,66 @@ function UserLoginMenu(
               <ListItemText inset>Login</ListItemText>
             </MenuItem>
         }
+        <MenuItem onClick={() => setLoggerOpen(true)}>
+          <ListItemIcon>
+            <InfoIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText inset>Log</ListItemText>
+        </MenuItem>
       </Menu>
+      <LoggerDialog open={loggerOpen} setOpen={setLoggerOpen}/>
     </Box>
   )
+}
+
+function LoggerDialog(
+  { open, setOpen }:
+    {
+      open: boolean,
+      setOpen: (a: boolean) => void
+    }
+) {
+
+  const handleClose = () => setOpen(false);
+
+  return (
+    <Dialog
+      fullScreen
+      open={open}
+      onClose={handleClose}
+    >
+      <DialogTitle id="alert-dialog-title">
+        Logger Dialog
+      </DialogTitle>
+      <DialogContent>
+        <Logger />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} autoFocus>
+          close
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+export default function FullScreenDialog() {
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  return (
+    <div>
+      <Button variant="outlined" onClick={handleClickOpen}>
+        Open full-screen dialog
+      </Button>
+
+    </div>
+  );
 }

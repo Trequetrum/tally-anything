@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -8,6 +7,10 @@ import {
   Button
 } from "@mui/material";
 
+/********************************************************************
+ * A MUI alert with title and message.
+ * State is created by the parent componant
+ *******************************************************************/
 export function MsgAlert(
   { state, setState }:
     {

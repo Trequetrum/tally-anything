@@ -30,7 +30,14 @@ let isLoggedIn = false
 let userName = ""
 let logginCallback = (loggedIn: boolean) => { }
 
+function handleLoginError(err: any){
+  /* Do nothing */
+  throw err;
+}
+
 const gapiClientInit = new Promise((resolve, reject) => {
+
+  console.log("Loading Google API");
 
   const script = document.createElement('script');
   script.type = 'text/javascript';
@@ -43,9 +50,11 @@ const gapiClientInit = new Promise((resolve, reject) => {
   };
   document.getElementsByTagName('head')[0].appendChild(script);
 
-}).then(() =>
+}).then(() => {
 
-  new Promise((resolve, reject) => {
+  console.log("Loading Google OAuth2 Client");
+
+  return new Promise((resolve, reject) => {
     gapi.load('client:auth2', {
       callback: () => resolve(true),
       onerror: (err: any) => reject(err),
@@ -54,7 +63,9 @@ const gapiClientInit = new Promise((resolve, reject) => {
     })
   })
 
-).then(() =>
+} ).then(() => {
+
+  console.log("Initializing Google OAuth2 Client");
 
   gapi.client.init({
     'apiKey': googleApiKey,
@@ -63,7 +74,8 @@ const gapiClientInit = new Promise((resolve, reject) => {
     'scope': scopes
   })
 
-).then(() => {
+}).then(() => {
+
   // GAPI Client is initialized
 
   // Handle the initial loggin state.
@@ -72,9 +84,12 @@ const gapiClientInit = new Promise((resolve, reject) => {
   gapi.auth2.getAuthInstance().isSignedIn.listen(handleLogin);
 
   return true
-})
+}).catch(handleLoginError);
 
 function handleLogin(isSignedIn: boolean) {
+
+  console.log("Handle loggin state");
+
   isLoggedIn = isSignedIn;
   userName = gapi?.auth2?.getAuthInstance()?.currentUser?.get()?.getBasicProfile()?.getGivenName() || ""
   logginCallback(isSignedIn);
@@ -87,16 +102,30 @@ function setLogginCallback(fn: (isLoggedIn: boolean) => void) {
 // Retrieve an Oauth Instance for the current user. Load APIs
 // and/or initialize OAuth flow if nessesary.
 async function getOAuthInstance() {
+  const instance = gapi.auth2.getAuthInstance()
+
   if (!isLoggedIn) {
+
+    console.log("User is logging in");
+
     await gapiClientInit;
-    await gapi.auth2.getAuthInstance().signIn();
+    return instance.signIn()
+      .then(() => instance)
+      .catch(handleLoginError);
   }
-  return gapi.auth2.getAuthInstance();
+
+  return instance;
 }
 
 async function logout(): Promise<boolean> {
   if (isLoggedIn) {
-    gapi.auth2.getAuthInstance().signOut()
+
+    console.log("User is logging out");
+
+    return gapi.auth2.getAuthInstance()
+      .signOut()
+      .then(() => true)
+      .catch(handleLoginError);
   }
   return true;
 }
@@ -117,6 +146,9 @@ async function getUserName(): Promise<string> {
 }
 
 async function revokeAccess(): Promise<boolean> {
+
+  console.log("User is revoking access to google drive");
+
   const instance = await getOAuthInstance();
   instance.disconnect()
   return true

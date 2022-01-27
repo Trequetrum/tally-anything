@@ -16,6 +16,12 @@ import {
 
 export { GoogleFilesCashe }
 
+/********************************************************************
+ * GoogleFilesCashe
+ * This class implements FileStoreCashe but defers the cashing to a
+ * StoreCashe. This class handles all the logic for how to remember 
+ * and access Google Drive files.
+ *******************************************************************/
 class GoogleFilesCashe implements FileStoreCashe {
 
   private store: StoreCashe

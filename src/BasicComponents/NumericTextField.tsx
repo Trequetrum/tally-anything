@@ -10,6 +10,13 @@ function isNumeric(str: string): boolean {
 
 export type NumericFieldOutput = "Empty" | "NaN" | number;
 
+/********************************************************************
+ * NumericTextField:
+ * A string TextField that shows red error message for any input that
+ * isn't a number. Only emits changes when NumericFieldOutput would 
+ * change. For example, a user typing a string causes this componant
+ * to emit "NaN" only once.
+ *******************************************************************/
 export function NumericTextField(
   { id, label, onChange, sx }:
     {
