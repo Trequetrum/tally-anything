@@ -67,12 +67,12 @@ const gapiClientInit = new Promise((resolve, reject) => {
 
   console.log("Initializing Google OAuth2 Client");
 
-  gapi.client.init({
+  return gapi.client.init({
     'apiKey': googleApiKey,
     'clientId': clientId,
     'discoveryDocs': discoveryDocs,
     'scope': scopes
-  })
+  });
 
 }).then(() => {
 
@@ -88,7 +88,7 @@ const gapiClientInit = new Promise((resolve, reject) => {
 
 function handleLogin(isSignedIn: boolean) {
 
-  console.log("Handle loggin state");
+  console.log("Handle loggin state - isSignedIn:", isSignedIn);
 
   isLoggedIn = isSignedIn;
   userName = gapi?.auth2?.getAuthInstance()?.currentUser?.get()?.getBasicProfile()?.getGivenName() || ""

@@ -55,6 +55,8 @@ function handleGoogleClientError(err: any){
  *******************************************************************/
  async function getFileFromDrive(docID: string): Promise<GoogleFile> {
 
+  console.log("Retrieving Google Document (id):", docID);
+
   const client = await getGapiClient();
 
   return client.drive.files.get({
@@ -98,6 +100,12 @@ function handleGoogleClientError(err: any){
         },
       };
     }
+
+    console.log(
+      "Loaded Google Document (name, id)", 
+      googleFile.name, 
+      googleFile.id
+    );
 
     return googleFile;
 
@@ -195,6 +203,12 @@ function contentAsString(file: GoogleFile, pretty: boolean): string {
 
 async function saveFile(file: GoogleFile): Promise<boolean> {
 
+  console.log(
+    "Saving Google Document (name, id):", 
+    file.name,
+    file.id
+  );
+
   // Ready a call to Google drive
   const boundary = '-------314159265358979323846';
   const delimiter = '\r\n--' + boundary + '\r\n';
@@ -242,6 +256,8 @@ async function createAndSaveNewFile(name: string, content?: any): Promise<Google
   if (content !== null) {
     newFile.content = content;
   }
+
+  console.log("Creating Google Document (name):", newFile.name);
 
   // Ready a call to create this file on the user's Google drive
   const boundary = '-------314159265358979323846';

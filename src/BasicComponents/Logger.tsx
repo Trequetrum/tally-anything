@@ -1,19 +1,29 @@
-import { Box, Divider } from "@mui/material";
+import { 
+  Box, 
+  Button, 
+  Dialog, 
+  DialogActions, 
+  DialogContent, 
+  DialogTitle, 
+  Divider 
+} from "@mui/material";
 
-export { Logger }
+export { LoggerDialog }
 
-let consoleContents: {
+interface LogEntry {
   type: string;
   timeStamp: string;
   value: any;
-}[] = [];
+}
+
+let consoleContents: LogEntry[] = [];
 
 linkConsole();
 
 function linkConsole() {
 
   function TS() {
-    return (new Date).toLocaleString("sv", { timeZone: 'UTC' }) + "Z"
+    return (new Date()).toLocaleString("sv", { timeZone: 'UTC' }) + "Z"
   }
 
   window.onerror = function (error, url, line) {
@@ -50,16 +60,71 @@ function linkConsole() {
   console.debug = hookLogType('debug', console.debug.bind(console));
 }
 
-function Logger(){
+function LogContent({ content }: { content: LogEntry[] }) {
   return (
     <Box>
       <Divider />
       {
-        consoleContents.flatMap((itm, i) => [
-          <pre key={`${i}0`}>{JSON.stringify(itm, null, 2)}</pre>,
-          <Divider key={`${i}1`} />
-        ])
+        content.map((itm, i) =>
+          <LogEntry key={i} entry={itm} />
+        )
       }
     </Box>
   )
+}
+
+function LogEntry({ entry }: { entry: LogEntry }) {
+
+  const { type, timeStamp, value } = entry;
+
+  return (
+    <Box>
+      <pre>{`${type}: ${timeStamp}`}</pre>
+      <pre>
+        {
+          value instanceof Error ?
+            JSON.stringify(value, Object.getOwnPropertyNames(value), 2) :
+            Array.isArray(value) ?
+              value.map(v => 
+                typeof v === 'string' ? v :
+                  JSON.stringify(v, null, 2)
+              ).join(" ") :
+              JSON.stringify(value, null, 2)
+        }
+      </pre>
+      <Divider />
+    </Box>
+  );
+}
+
+function LoggerDialog(
+  { open, setOpen }:
+    {
+      open: boolean,
+      setOpen: (a: boolean) => void
+    }
+) {
+
+  const handleClose = () => setOpen(false);
+  const content = open ? [...consoleContents] : []
+
+  return (
+    <Dialog
+      fullScreen
+      open={open}
+      onClose={handleClose}
+    >
+      <DialogTitle id="alert-dialog-title">
+        Tally Anything Log
+      </DialogTitle>
+      <DialogContent>
+        <LogContent content={content}/>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} autoFocus>
+          close
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 }

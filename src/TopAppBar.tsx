@@ -40,7 +40,7 @@ import {
 import { showGoogleDrivePicker } from './StorageService/GoogleDrive/gdrive-picker';
 import { StoreWriter } from './StorageService/store-reducer';
 import { TagState } from './App';
-import { Logger } from './BasicComponents/Logger';
+import { LoggerDialog } from './BasicComponents/Logger';
 
 export { TopAppBar }
 
@@ -301,56 +301,4 @@ function UserLoginMenu(
       <LoggerDialog open={loggerOpen} setOpen={setLoggerOpen}/>
     </Box>
   )
-}
-
-function LoggerDialog(
-  { open, setOpen }:
-    {
-      open: boolean,
-      setOpen: (a: boolean) => void
-    }
-) {
-
-  const handleClose = () => setOpen(false);
-
-  return (
-    <Dialog
-      fullScreen
-      open={open}
-      onClose={handleClose}
-    >
-      <DialogTitle id="alert-dialog-title">
-        Logger Dialog
-      </DialogTitle>
-      <DialogContent>
-        <Logger />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} autoFocus>
-          close
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
-
-export default function FullScreenDialog() {
-  const [open, setOpen] = React.useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  return (
-    <div>
-      <Button variant="outlined" onClick={handleClickOpen}>
-        Open full-screen dialog
-      </Button>
-
-    </div>
-  );
 }
