@@ -101,6 +101,8 @@ function setLogginCallback(fn: (isLoggedIn: boolean) => void) {
 // Retrieve an Oauth Instance for the current user. Load APIs
 // and/or initialize OAuth flow if nessesary.
 async function getOAuthInstance(): Promise<gapi.auth2.GoogleAuthBase> {
+  await gapiClientInit;
+
   const instance = gapi.auth2.getAuthInstance()
 
   if (!isLoggedIn) {
@@ -109,21 +111,19 @@ async function getOAuthInstance(): Promise<gapi.auth2.GoogleAuthBase> {
 
     setTimeout(async () => {
 
+      console.log("Loggin Timeout is triggering! - isSignedIn:", isLoggedIn);
       if(!isLoggedIn) {
-        console.log("Timeout: No Response From Google's OAuth Client");
+        console.error("Timeout: After signin, no response From Google's OAuth Client");
         console.log("Direct query for status - isSignedIn:", gapi.auth2.getAuthInstance().isSignedIn.get());
-        console.log("Disconnecting and Clearing Cookies");
-        const instance = await getOAuthInstance();
-        instance.disconnect();
+        console.log("Disconnecting Google's Signin Client");
+        gapi.auth2.getAuthInstance().disconnect();
       }
-      
+
     }, 3000);
 
-
-    await gapiClientInit;
     return Promise.resolve(instance.signIn())
       .then(() => instance)
-      //.catch(handleLoginError);
+      .catch(handleLoginError);
   }
 
   return instance;
