@@ -12,8 +12,6 @@ export {
   revokeAccess
 }
 
-declare var gapi: any;
-
 const googleApiKey = 'AIzaSyDpVnC9nF-bCsgfgJW7_gsrvenqX27S-c0';
 const clientId = '833733111006-t1ohltmjic3spr0r47j6nn6t4hvdt4tb.apps.googleusercontent.com';
 const appId = 'tally-anything-338816'
@@ -30,7 +28,7 @@ let isLoggedIn = false
 let userName = ""
 let logginCallback = (loggedIn: boolean) => { }
 
-function handleLoginError(err: any){
+function handleLoginError(err: any): never{
   /* Do nothing */
   throw err;
 }
@@ -102,7 +100,7 @@ function setLogginCallback(fn: (isLoggedIn: boolean) => void) {
 
 // Retrieve an Oauth Instance for the current user. Load APIs
 // and/or initialize OAuth flow if nessesary.
-async function getOAuthInstance() {
+async function getOAuthInstance(): Promise<gapi.auth2.GoogleAuthBase> {
   const instance = gapi.auth2.getAuthInstance()
 
   if (!isLoggedIn) {
@@ -112,7 +110,7 @@ async function getOAuthInstance() {
     await gapiClientInit;
     return Promise.resolve(instance.signIn())
       .then(() => instance)
-      .catch(handleLoginError);
+      //.catch(handleLoginError);
   }
 
   return instance;

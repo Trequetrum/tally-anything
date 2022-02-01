@@ -30,7 +30,7 @@ let folderId = ""
  * should probably be imporved anyway as many of these errors should
  * be recoverable.
  *******************************************************************/
-function handleGoogleClientError(err: any){
+function handleGoogleClientError(err: any) : never {
 
   if(err?.result?.error?.errors[0]?.reason == "insufficientPermissions"){
     revokeAccess();
