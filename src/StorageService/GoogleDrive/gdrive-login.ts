@@ -78,10 +78,11 @@ const gapiClientInit = new Promise((resolve, reject) => {
 
   // GAPI Client is initialized
 
-  // Handle the initial loggin state.
-  handleLogin(gapi.auth2.getAuthInstance().isSignedIn.get())
   // Listen for loggin state changes.
   gapi.auth2.getAuthInstance().isSignedIn.listen(handleLogin);
+
+  // Handle the initial loggin state.
+  handleLogin(gapi.auth2.getAuthInstance().isSignedIn.get());
 
   return true
 }).catch(handleLoginError);
@@ -109,7 +110,7 @@ async function getOAuthInstance() {
     console.log("User is logging in");
 
     await gapiClientInit;
-    return instance.signIn()
+    return Promise.resolve(instance.signIn())
       .then(() => instance)
       .catch(handleLoginError);
   }
