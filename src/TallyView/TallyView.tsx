@@ -8,6 +8,7 @@ import { EntriesTable } from './EntriesTable'
 import { SummaryTable } from './SummaryTable'
 import { TallyWriter } from './TallyWriter'
 import { mergeDays, sum } from '../util';
+import { TagStateEntries } from '../App';
 
 export { TallyView }
 
@@ -15,23 +16,24 @@ function TallyView(
   { tag, entries, storeDispatch }:
     {
       tag: string,
-      entries: "Loading" | Entry[],
+      entries: TagStateEntries,
       storeDispatch: StoreWriter
     }
 ) {
 
-  const dispList = entries == "Loading" ? [] : summary(entries);
+  const entriesLoading = entries === "Loading";
+  const dispList = entriesLoading ? [] : summary(entries);
 
-  const tallyButtons = entries == "Loading" ? [] : decideWritterButtons(entries);
+  const tallyButtons = entriesLoading ? [] : decideWritterButtons(entries);
 
   return (
     <div>
       <h1>{tag}</h1>
       <TallyWriter tag={tag} tallyButtons={tallyButtons} storeDispatch={storeDispatch} />
-      <h4 style={entries == "Loading" ? {} : { display: 'none' }}>
+      <h4 style={entriesLoading ? {} : { display: 'none' }}>
         Loading Entries
       </h4>
-      <Box sx={{ display: entries != "Loading" && entries.length > 0 ? 'block' : 'none' }} >
+      <Box sx={{ display: !entriesLoading && entries.length > 0 ? 'block' : 'none' }} >
         <SummaryTable
           key="st"
           dispList={dispList}
@@ -39,7 +41,7 @@ function TallyView(
         <EntriesTable
           key="et"
           tag={tag}
-          entries={entries == "Loading" ? [] : entries}
+          entries={entriesLoading ? [] : entries}
           storeDispatch={storeDispatch}
         />
       </Box>

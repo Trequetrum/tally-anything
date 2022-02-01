@@ -1,4 +1,6 @@
-import { appId, gapiClientInit, getOauthToken } from "./gdrive-login";
+import { GOOGLE_APP_ID } from "./gdrive-config";
+import { GoogleAPIAuthenticator } from "./gdrive-login";
+
 export { showGoogleDrivePicker }
 
 declare var gapi: any;
@@ -12,20 +14,18 @@ let loadPickerApiPromise: null | Promise<boolean> = null
 function loadPickerApi(): Promise<boolean> {
 
   if (loadPickerApiPromise == null) {
-    loadPickerApiPromise = gapiClientInit.then(() =>
-      new Promise((resolve, reject) => {
-        gapi.load('picker', () => resolve(true));
+    loadPickerApiPromise = new Promise((resolve, reject) => {
+      gapi.load('picker', () => resolve(true));
 
-        // Error if the picker takes too long to load.
-        const timer = setTimeout(
-          () => reject("Loading Google Picker Timed out after 5 seconds"),
-          5000
-        );
-      })
-    );
+      // Error if the picker takes too long to load.
+      const timer = setTimeout(
+        () => reject("Loading Google Picker Timed out after 5 seconds"),
+        5000
+      );
+    });
   }
 
-  return loadPickerApiPromise;
+  return loadPickerApiPromise as Promise<boolean>;
 }
 
 /***
@@ -36,12 +36,12 @@ function loadPickerApi(): Promise<boolean> {
  * google drive. Gives our app permission to read/edit those files as per
  * scropes requested by the oauthService.
  ***/
-async function showGoogleDrivePicker(onDocumentSelection: (documents: any) => void): Promise<boolean> {
+async function showGoogleDrivePicker(
+  auth: GoogleAPIAuthenticator,
+  onDocumentSelection: (documents: any) => void
+): Promise<boolean> {
 
-  const [oauthToken] = await Promise.all([
-    getOauthToken(),
-    loadPickerApi()
-  ])
+  await loadPickerApi();
 
   const pickerCallback = (response: any) => {
     // Check that the user picked at least one file
@@ -58,8 +58,8 @@ async function showGoogleDrivePicker(onDocumentSelection: (documents: any) => vo
   const picker = pickerBuilder
     /*.enableFeature(google.picker.Feature.NAV_HIDDEN)*/
     .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
-    .setAppId(appId)
-    .setOAuthToken(oauthToken)
+    .setAppId(GOOGLE_APP_ID)
+    .setOAuthToken(auth.getOAuthToken())
     .addView(view)
     .addView(new google.picker.DocsUploadView())
     .setCallback(pickerCallback)

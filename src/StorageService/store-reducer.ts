@@ -4,23 +4,23 @@ export type { StoreWriter, StoreAction }
 export { implStoreWriter }
 
 type StoreAction =
-  {
+  { type: "NewStore";
+    store: FileStoreCashe;
+  } | {
     type: "Write";
-    payload: StoreEntry;
+    entry: StoreEntry;
   } | {
     type: "Delete";
-    payload: StoreEntry;
+    entry: StoreEntry;
   } | {
     type: "Update";
-    payload: {
-      oldEntry: StoreEntry;
-      newEntry: StoreEntry;
-    }
+    oldEntry: StoreEntry;
+    newEntry: StoreEntry;
   } | {
-    type: "Clear"
+    type: "Clear";
   } | {
     type: "AddFiles";
-    payload: ({ name: string, id: string })[];
+    files: ({ name: string, id: string })[];
   };
 
 type StoreWriter = (action: StoreAction) => FileStoreCashe;
@@ -28,20 +28,22 @@ type StoreWriter = (action: StoreAction) => FileStoreCashe;
 function implStoreWriter(store: FileStoreCashe, action: StoreAction): FileStoreCashe {
 
   switch (action.type) {
+    case "NewStore":
+      return action.store;
     case "Write":
-      store.write(action.payload);
+      store.write(action.entry);
       break;
     case "Delete":
-      store.delete(action.payload);
+      store.delete(action.entry);
       break;
     case "Update":
-      store.update(action.payload.oldEntry, action.payload.newEntry)
+      store.update(action.oldEntry, action.newEntry)
       break;
     case "Clear":
       store.clear();
       break;
     case "AddFiles":
-      store.addFiles(action.payload)
+      store.addFiles(action.files)
   }
 
   return store;

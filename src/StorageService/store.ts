@@ -1,7 +1,7 @@
 import { compareDesc } from "date-fns";
 
 export type { StoreEntry, Entry, StoreCashe, FileStoreCashe }
-export { MapStoreCashe, equalEntry, equalStoreEntry, compareEntryTimeDesc }
+export { MapStoreCashe, EmptyFileStore, equalEntry, equalStoreEntry, compareEntryTimeDesc }
 
 interface Entry {
   count: number,
@@ -65,7 +65,7 @@ class MapStoreCashe implements StoreCashe {
     if (mTag != null) {
       this.store.set(
         tag,
-        mTag.filter(v => !equalEntry(v, {date, count}))
+        mTag.filter(v => !equalEntry(v, { date, count }))
       );
     }
   }
@@ -99,6 +99,25 @@ function equalStoreEntry(a: StoreEntry, b: StoreEntry): boolean {
     a.date.getTime() === b.date.getTime();
 }
 
-function compareEntryTimeDesc(a: Entry | StoreEntry, b: Entry | StoreEntry): number{
+function compareEntryTimeDesc(a: Entry | StoreEntry, b: Entry | StoreEntry): number {
   return compareDesc(a.date, b.date);
+}
+
+class EmptyFileStore implements FileStoreCashe {
+  requestTags(): Promise<string[]> {
+    return Promise.resolve([]);
+  }
+  requestBytag(tag: string): Promise<Entry[]> {
+    return Promise.resolve([]);
+  }
+  read(): StoreEntry[] { return []; }
+  getTags(): string[] { return []; }
+  entriesByTag(tag: string): Entry[] { return []; }
+  addFiles(files: { name: string; id: string; }[]): void { }
+  write(entry: StoreEntry): void { }
+  delete(entry: StoreEntry): void { }
+  update(oldEntry: StoreEntry, newEntry: StoreEntry): void { }
+  clear(): void { }
+
+
 }

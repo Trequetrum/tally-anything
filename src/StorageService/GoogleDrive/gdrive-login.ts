@@ -1,167 +1,158 @@
-export {
-  getGapiClient,
-  isLoggedIn,
-  userName,
-  setLogginCallback,
-  getUserName,
-  getOAuthInstance,
-  getOauthToken,
-  logout,
-  appId,
-  gapiClientInit,
-  revokeAccess
+import {
+  GAPI_SCRIPT_URL,
+  GOOGLE_API_KEY,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_DISCOVERY_DOCS,
+  GOOGLE_API_SCOPES
+} from "./gdrive-config";
+
+export type { GoogleAPIAuthenticator }
+export { getGoogleAPIAuthenticator }
+
+interface GoogleAPIAuthenticator {
+  login(): Promise<void>;
+  logout(): Promise<void>;
+  getOAuthInstance(): gapi.auth2.GoogleAuthBase;
+  getOAuthToken(): string;
+  getGapiClient(): typeof gapi.client;
+  getUserName(): string;
+  revokeAccess(): void;
 }
 
-const googleApiKey = 'AIzaSyDpVnC9nF-bCsgfgJW7_gsrvenqX27S-c0';
-const clientId = '833733111006-t1ohltmjic3spr0r47j6nn6t4hvdt4tb.apps.googleusercontent.com';
-const appId = 'tally-anything-338816'
-const scopes = [
-  'profile',
-  'email',
-  'https://www.googleapis.com/auth/drive.file',
-  'https://www.googleapis.com/auth/drive.appdata'
-].join(' ');
-const discoveryDocs = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
-const gapiScriptSrcUrl = "https://apis.google.com/js/api.js";
+class GoogleAPIAuthenticator_Impl implements GoogleAPIAuthenticator {
+  constructor() { }
 
-let isLoggedIn = false
-let userName = ""
-let logginCallback = (loggedIn: boolean) => { }
+  login(): Promise<void> {
+    return new Promise((resolve, reject) => {
 
-function handleLoginError(err: any): never{
-  /* Do nothing */
-  throw err;
+      console.log("User logging in");
+
+      const logginTimeout = setTimeout(async () => {
+
+        const isLoggedIn = this.getOAuthInstance().isSignedIn.get();
+        console.log("Loggin Timeout has triggered - isSignedIn:", isLoggedIn);
+        if (!isLoggedIn) {
+          const err = "User loggin Timeout: After signin, no response From Google's OAuth Client";
+          console.error(err);
+          console.log("Disconnecting Google's Signin Client");
+          this.getOAuthInstance().disconnect();
+          reject(err);
+        } else {
+          resolve();
+        }
+
+      }, 5000);
+
+      this.getOAuthInstance().signIn().then(
+        v => {
+          clearTimeout(logginTimeout);
+          console.log("User loggin success", v);
+          resolve();
+        },
+        e => {
+          clearTimeout(logginTimeout);
+          console.error("User loggin error", e);
+          reject(e);
+        }
+      )
+    });
+  }
+
+  logout(): Promise<void> {
+
+    console.log("User logging out");
+
+    return gapi.auth2.getAuthInstance().signOut().then(
+      (v: any) => console.log("User loggout success", v),
+      (e: any) => console.error("User loggin error", e)
+    );
+
+  }
+  getOAuthInstance(): gapi.auth2.GoogleAuthBase {
+    return gapi.auth2.getAuthInstance();
+  }
+  getOAuthToken(): string {
+    return this.getOAuthInstance().currentUser.get().getAuthResponse().access_token
+  }
+  getGapiClient(): typeof gapi.client {
+    return gapi.client
+  }
+
+  getUserName(): string {
+    return gapi
+      ?.auth2
+      ?.getAuthInstance()
+      ?.currentUser
+      ?.get()
+      ?.getBasicProfile()
+      ?.getGivenName() || ""
+  }
+
+  revokeAccess(): void {
+
+    console.log("Revoking access to google drive");
+    this.getOAuthInstance().disconnect()
+
+  }
 }
 
-const gapiClientInit = new Promise((resolve, reject) => {
-
-  console.log("Loading Google API");
-
-  const script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.src = gapiScriptSrcUrl;
-  script.onload = () => {
-    resolve(true)
-  };
-  script.onerror = error => {
-    reject(error)
-  };
-  document.getElementsByTagName('head')[0].appendChild(script);
-
-}).then(() => {
-
-  console.log("Loading Google OAuth2 Client");
+function loadAndInitGoogleScripts(): Promise<void> {
 
   return new Promise((resolve, reject) => {
-    gapi.load('client:auth2', {
-      callback: () => resolve(true),
-      onerror: (err: any) => reject(err),
-      timeout: 5000, // 5 seconds.
-      ontimeout: () => reject("isGapiClientAuth2Loaded Timeout Error")
+
+    console.log("Loading Google API");
+
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = GAPI_SCRIPT_URL;
+    script.onload = () => {
+      resolve(true)
+    };
+    script.onerror = error => {
+      reject(error)
+    };
+    document.getElementsByTagName('head')[0].appendChild(script);
+
+  }).then(() => {
+
+    console.log("Loading Google OAuth2 Client");
+
+    return new Promise((resolve, reject) => {
+      gapi.load('client:auth2', {
+        callback: () => resolve(true),
+        onerror: (err: any) => reject(err),
+        timeout: 5000, // 5 seconds.
+        ontimeout: () => reject("isGapiClientAuth2Loaded Timeout Error")
+      })
     })
-  })
 
-} ).then(() => {
+  }).then(() => {
 
-  console.log("Initializing Google OAuth2 Client");
+    console.log("Initializing Google OAuth2 Client");
 
-  return gapi.client.init({
-    'apiKey': googleApiKey,
-    'clientId': clientId,
-    'discoveryDocs': discoveryDocs,
-    'scope': scopes
+    return gapi.client.init({
+      'apiKey': GOOGLE_API_KEY,
+      'clientId': GOOGLE_CLIENT_ID,
+      'discoveryDocs': GOOGLE_DISCOVERY_DOCS,
+      'scope': GOOGLE_API_SCOPES
+    });
+
   });
-
-}).then(() => {
-
-  // GAPI Client is initialized
-
-  // Listen for loggin state changes.
-  gapi.auth2.getAuthInstance().isSignedIn.listen(handleLogin);
-
-  // Handle the initial loggin state.
-  handleLogin(gapi.auth2.getAuthInstance().isSignedIn.get());
-
-  return true
-}).catch(handleLoginError);
-
-function handleLogin(isSignedIn: boolean) {
-
-  console.log("Handle loggin state - isSignedIn:", isSignedIn);
-
-  isLoggedIn = isSignedIn;
-  userName = gapi?.auth2?.getAuthInstance()?.currentUser?.get()?.getBasicProfile()?.getGivenName() || ""
-  logginCallback(isSignedIn);
 }
 
-function setLogginCallback(fn: (isLoggedIn: boolean) => void) {
-  logginCallback = fn;
-}
+function getGoogleAPIAuthenticator(
+  logginCallback: (isLoggedIn: boolean) => void
+): Promise<GoogleAPIAuthenticator> {
 
-// Retrieve an Oauth Instance for the current user. Load APIs
-// and/or initialize OAuth flow if nessesary.
-async function getOAuthInstance(): Promise<gapi.auth2.GoogleAuthBase> {
-  await gapiClientInit;
+  return loadAndInitGoogleScripts().then(() => {
+    // GAPI Client is initialized
 
-  const instance = gapi.auth2.getAuthInstance()
+    // Listen for loggin state changes.
+    gapi.auth2.getAuthInstance().isSignedIn.listen(logginCallback);
 
-  if (!isLoggedIn) {
-
-    console.log("User is logging in");
-
-    setTimeout(async () => {
-
-      console.log("Loggin Timeout is triggering! - isSignedIn:", isLoggedIn);
-      if(!isLoggedIn) {
-        console.error("Timeout: After signin, no response From Google's OAuth Client");
-        console.log("Direct query for status - isSignedIn:", gapi.auth2.getAuthInstance().isSignedIn.get());
-        console.log("Disconnecting Google's Signin Client");
-        gapi.auth2.getAuthInstance().disconnect();
-      }
-
-    }, 3000);
-
-    return Promise.resolve(instance.signIn())
-      .then(() => instance)
-      .catch(handleLoginError);
-  }
-
-  return instance;
-}
-
-async function logout(): Promise<boolean> {
-  if (isLoggedIn) {
-
-    console.log("User is logging out");
-
-    return gapi.auth2.getAuthInstance()
-      .signOut()
-      .then(() => true)
-      .catch(handleLoginError);
-  }
-  return true;
-}
-
-async function getOauthToken(): Promise<string> {
-  const instance = await getOAuthInstance();
-  return instance.currentUser.get().getAuthResponse().access_token
-}
-
-async function getGapiClient(): Promise<any> {
-  await gapiClientInit;
-  return gapi.client;
-}
-
-async function getUserName(): Promise<string> {
-  const instance = await getOAuthInstance();
-  return instance.currentUser.get().getBasicProfile().getGivenName()
-}
-
-async function revokeAccess(): Promise<boolean> {
-
-  console.log("User is revoking access to google drive");
-
-  const instance = await getOAuthInstance();
-  instance.disconnect()
-  return true
+    // Handle the initial loggin state.
+    logginCallback(gapi.auth2.getAuthInstance().isSignedIn.get());
+  }).then(
+    () => new GoogleAPIAuthenticator_Impl()
+  );
 }

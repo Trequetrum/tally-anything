@@ -8,20 +8,27 @@ import {
 } from '@mui/material';
 import { CallMade as CallMadeIcon } from '@mui/icons-material';
 import {
-  isLoggedIn,
-  userName,
-  setLogginCallback,
-  getUserName
+  getGoogleAPIAuthenticator,
+  GoogleAPIAuthenticator
 } from './StorageService/GoogleDrive/gdrive-login'
-import { Entry, FileStoreCashe } from './StorageService/store';
+import { EmptyFileStore, Entry, FileStoreCashe } from './StorageService/store';
 import { implStoreWriter, StoreAction, StoreWriter } from './StorageService/store-reducer';
+import { GoogleFilesCashe } from './StorageService/GoogleDrive/gdrive-cashe';
+import { GoogleFileManager } from './StorageService/GoogleDrive/gdrive-file';
 
-export type { TagState }
+export type { TagState, TagStateEntries, LogginState }
 export { App }
+
+type Loading = "Loading";
+type Failure = "Failure";
+
+type LogginState = Loading | Failure | boolean;
+
+type TagStateEntries =  Loading | Entry[];
 
 interface TagState {
   tag: null | string;
-  entries: "Loading" | Entry[];
+  entries: TagStateEntries;
 }
 
 // Wrapping our persistant storeCashe stops react from bailing out of
@@ -30,17 +37,38 @@ function storeReducer({ store }: { store: FileStoreCashe }, action: StoreAction)
   return ({ store: implStoreWriter(store, action) });
 }
 
-function App({ globalStore }: { globalStore: FileStoreCashe }): JSX.Element {
+function App(): JSX.Element {
 
-  const [storeWrapper, _storeDispatch] = React.useReducer(storeReducer, { store: globalStore });
+  const [storeWrapper, _storeDispatch] = React.useReducer(
+    storeReducer,
+    { store: new EmptyFileStore() }
+  );
   const storeDispatch = _storeDispatch as StoreWriter
 
-  const logginState = useLogginManager(storeWrapper.store);
-  const [tagState, setTagSate] = useLoadingTags(storeWrapper, logginState.isLoggedIn)
+  const [logginState, setLogginState] = React.useState<LogginState>(false);
+  const [auth, setAuth] = React.useState<null | GoogleAPIAuthenticator>(null);
+
+  React.useEffect(() => {
+    console.log("Getting getGoogleAPIAuthenticator")
+    getGoogleAPIAuthenticator(setLogginState).then(authy => {
+      console.log("Setting Auth");
+      setAuth(authy);
+      storeDispatch({
+        type: "NewStore",
+        store: new GoogleFilesCashe(
+          new GoogleFileManager(authy)
+        )
+      });
+    });
+  }, []);
+
+  const userName = auth?.getUserName() || ""
+
+  const [tagState, setTagSate] = useLoadingTagEntries(storeWrapper, logginState === true)
 
   const [tagList, setTagList] = React.useState<"Loading" | string[]>("Loading")
   React.useEffect(() => {
-    if (logginState.isLoggedIn) {
+    if (logginState === true) {
       storeWrapper.store.requestTags().then(setTagList);
     }
   }, [storeWrapper, logginState])
@@ -49,56 +77,71 @@ function App({ globalStore }: { globalStore: FileStoreCashe }): JSX.Element {
     <div className="App">
       <TopAppBar
         logginState={logginState}
+        setLoggedIn={setLogginState}
+        userName={userName}
         tags={tagList}
         setTagSate={setTagSate}
         storeDispatch={storeDispatch}
+        authService={auth}
       />
-      {
-        !logginState.isLoggedIn ?
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <h4>Login to Begin! <CallMadeIcon /></h4>
-          </Box>
-          :
-          tagState.tag == null ?
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <h4><CallMadeIcon sx={{ transform: 'rotate(270deg)' }} /> Select A Thing To Tally</h4>
-            </Box>
-            :
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <TallyView
-                tag={tagState.tag}
-                entries={tagState.entries}
-                storeDispatch={storeDispatch}
-              />
-            </Box>
-      }
+      <OpeningMessage
+        logginState={logginState}
+        tagState={tagState}
+        storeDispatch={storeDispatch}
+      />
     </div>
   );
 }
 
-function useLogginManager(store: FileStoreCashe) {
-
-  const [logginState, setLogginState] = React.useState({
-    isLoggedIn,
-    userName
-  });
-
-  const logginCallback = React.useCallback(async (isLoggedIn: boolean) => {
-    if (isLoggedIn) {
-      const userName = await getUserName();
-      setLogginState({ isLoggedIn, userName })
-    } else {
-      store.clear();
-      setLogginState({ isLoggedIn: false, userName: "" })
+function OpeningMessage(
+  { logginState, tagState, storeDispatch }:
+    {
+      logginState: LogginState;
+      tagState: TagState;
+      storeDispatch: StoreWriter;
     }
-  }, [store])
+): JSX.Element {
 
-  React.useEffect(() => setLogginCallback(logginCallback), [logginCallback]);
+  if (logginState === false) {
 
-  return logginState
+    return <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <h4>Login to Begin! <CallMadeIcon /></h4>
+    </Box>;
+
+  } else if (logginState === "Loading") {
+
+    return <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <h4>Logging In...</h4>
+    </Box>;
+
+  } else if (logginState === "Failure") {
+
+    return <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <h4>Loggin Failed, try again?</h4>
+    </Box>;
+
+  } else {
+
+    return tagState.tag === null ?
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <h4>
+          <CallMadeIcon sx={{ transform: 'rotate(270deg)' }} />
+          Select A Thing To Tally
+        </h4>
+      </Box>
+      :
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <TallyView
+          tag={tagState.tag}
+          entries={tagState.entries}
+          storeDispatch={storeDispatch}
+        />
+      </Box>;
+  }
+
 }
 
-function useLoadingTags(
+function useLoadingTagEntries(
   storeWrapper: { store: FileStoreCashe },
   isLoggedIn: boolean
 ): [TagState, (a: TagState) => void] {
@@ -106,20 +149,17 @@ function useLoadingTags(
   const [tagState, setTagSate] = React.useState({
     tag: null,
     entries: "Loading"
-  } as {
-    tag: null | string,
-    entries: "Loading" | Entry[]
-  });
+  } as TagState);
 
   // If the store has updated in any way, reload entries
   React.useEffect(
-    () => setTagSate(a => ({ tag: a.tag, entries: "Loading" })),
+    () => setTagSate(st => ({ tag: st.tag, entries: "Loading" })),
     [storeWrapper]
   );
 
   // If entries are set to loading, load them
   React.useEffect(() => {
-    if (tagState.tag != null && tagState.entries == "Loading") {
+    if (tagState.tag != null && tagState.entries === "Loading") {
       storeWrapper.store.requestBytag(tagState.tag).then((entries: Entry[]) => {
         setTagSate({
           tag: tagState.tag,
@@ -131,11 +171,11 @@ function useLoadingTags(
 
   // Set and read browser cookies to save/load default tag
   React.useEffect(() => {
-    if (isLoggedIn && tagState.tag == null) {
+    if (isLoggedIn && tagState.tag === null) {
       const cookieTag = getCookie("tag");
       if (cookieTag.length > 0) {
         storeWrapper.store.requestTags().then(tags => {
-          if(tags.includes(cookieTag)){
+          if (tags.includes(cookieTag)) {
             setTagSate({
               tag: cookieTag,
               entries: "Loading"
@@ -143,10 +183,10 @@ function useLoadingTags(
           }
         })
       }
-    } else if (isLoggedIn && tagState.tag != null){
+    } else if (isLoggedIn && tagState.tag != null) {
       setCookie("tag", tagState.tag);
     }
-  }, [storeWrapper,tagState, isLoggedIn]);
+  }, [storeWrapper, tagState, isLoggedIn]);
 
   return [tagState, setTagSate];
 }

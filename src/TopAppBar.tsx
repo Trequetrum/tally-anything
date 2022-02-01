@@ -32,29 +32,31 @@ import {
   HourglassEmpty as HourglassEmptyIcon
 } from '@mui/icons-material';
 
-import {
-  logout,
-  getOAuthInstance,
-  revokeAccess
-} from './StorageService/GoogleDrive/gdrive-login'
 import { showGoogleDrivePicker } from './StorageService/GoogleDrive/gdrive-picker';
 import { StoreWriter } from './StorageService/store-reducer';
-import { TagState } from './App';
+import { TagState, LogginState } from './App';
 import { LoggerDialog } from './BasicComponents/Logger';
+import { GoogleAPIAuthenticator } from './StorageService/GoogleDrive/gdrive-login';
 
 export { TopAppBar }
 
 function TopAppBar(
-  { logginState, tags, setTagSate, storeDispatch }:
-    {
-      logginState: {
-        isLoggedIn: boolean,
-        userName: string
-      },
-      tags: "Loading" | string[],
-      setTagSate: (a: TagState) => void,
-      storeDispatch: StoreWriter
-    }
+  { logginState,
+    setLoggedIn,
+    userName,
+    tags,
+    setTagSate,
+    storeDispatch,
+    authService
+  }: {
+    logginState: LogginState;
+    setLoggedIn: (a: LogginState) => void;
+    userName: string;
+    tags: "Loading" | string[];
+    setTagSate: (a: TagState) => void;
+    storeDispatch: StoreWriter;
+    authService: null | GoogleAPIAuthenticator
+  }
 ) {
 
   return (
@@ -62,7 +64,7 @@ function TopAppBar(
       <AppBar position="static">
         <Toolbar>
           {
-            logginState.isLoggedIn ?
+            logginState === true ?
               <TagSelectionMenu tags={tags} setTagSate={setTagSate} /> :
               []
           }
@@ -70,7 +72,13 @@ function TopAppBar(
             TALLY
           </Typography>
 
-          <UserLoginMenu logginState={logginState} storeDispatch={storeDispatch} />
+          <UserLoginMenu
+            logginState={logginState}
+            setLoggedIn={setLoggedIn}
+            userName={userName}
+            storeDispatch={storeDispatch}
+            authService={authService}
+          />
 
         </Toolbar>
       </AppBar>
@@ -200,16 +208,19 @@ function NewThingDialog(
   )
 }
 
-
 function UserLoginMenu(
-  { logginState, storeDispatch }:
-    {
-      logginState: {
-        isLoggedIn: boolean,
-        userName: string
-      };
-      storeDispatch: StoreWriter;
-    }
+  { logginState,
+    setLoggedIn,
+    userName,
+    storeDispatch,
+    authService
+  }: {
+    logginState: LogginState;
+    setLoggedIn: (a: LogginState) => void;
+    userName: string;
+    storeDispatch: StoreWriter;
+    authService: null | GoogleAPIAuthenticator;
+  }
 ) {
 
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -218,24 +229,51 @@ function UserLoginMenu(
     setMenuAnchorEl(event.currentTarget);
   };
 
-  const closeMenu = (fn?: () => void) => () => {
-    if (fn) fn();
-    setMenuAnchorEl(null);
-  }
+  const [loggerOpen, setLoggerOpen] = React.useState(false);
+
+  const handleCloseMenu = () => setMenuAnchorEl(null);
 
   const pickerCallback = (documents: any[]) => {
     storeDispatch({
       type: "AddFiles",
-      payload: documents.map((v: any) => ({ id: v.id, name: v.name }))
+      files: documents.map((v: any) => ({ id: v.id, name: v.name }))
     })
   }
 
-  const [loggerOpen, setLoggerOpen] = React.useState(false);
+  const handleLoggout = () => {
+    handleCloseMenu();
+    authService?.logout();
+  }
+
+  const handleGrantFiles = () => {
+    handleCloseMenu();
+    if (authService !== null) {
+      showGoogleDrivePicker(authService, pickerCallback);
+    }
+  }
+
+  const handleRevokeAccess = () => {
+    handleCloseMenu();
+    authService?.logout();
+  }
+
+  const handleLogin = () => {
+    handleCloseMenu();
+    setLoggedIn("Loading")
+    authService?.login().catch(() => {
+      setLoggedIn("Failure");
+    });
+  }
+
+  const handleOpenLog = () => {
+    handleCloseMenu();
+    setLoggerOpen(true)
+  }
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
       <div>
-        {logginState.userName || ""}
+        {userName}
       </div>
 
       <IconButton
@@ -250,31 +288,25 @@ function UserLoginMenu(
         id="app-bar-acc-options"
         anchorEl={menuAnchorEl}
         open={isMenuOpen}
-        onClose={closeMenu()}
+        onClose={handleCloseMenu}
       >
         {
-          logginState.isLoggedIn ?
-            [<MenuItem key="logout" onClick={
-              closeMenu(logout)
-            }>
+          logginState === true ?
+            [<MenuItem key="logout" onClick={handleLoggout}>
               <ListItemIcon>
                 <LogoutIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText inset>Logout</ListItemText>
             </MenuItem>,
 
-            <MenuItem key="grant" onClick={
-              closeMenu(() => showGoogleDrivePicker(pickerCallback))
-            }>
+            <MenuItem key="grant" onClick={handleGrantFiles}>
               <ListItemIcon>
                 <AddToDriveIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText inset>Grant Files</ListItemText>
             </MenuItem>,
 
-            <MenuItem key="revoke" onClick={
-              closeMenu(revokeAccess)
-            }>
+            <MenuItem key="revoke" onClick={handleRevokeAccess}>
               <ListItemIcon>
                 <LockResetIcon fontSize="small" />
               </ListItemIcon>
@@ -282,18 +314,16 @@ function UserLoginMenu(
             </MenuItem>
 
             ] :
-            <MenuItem onClick={
-              closeMenu(getOAuthInstance)
-            }>
-              <ListItemIcon>
-                <LoginIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText inset>Login</ListItemText>
-            </MenuItem>
+            logginState === false ?
+              <MenuItem onClick={handleLogin}>
+                <ListItemIcon>
+                  <LoginIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText inset>Login</ListItemText>
+              </MenuItem>
+              : []
         }
-        <MenuItem onClick={
-          closeMenu(() => setLoggerOpen(true))
-        }>
+        <MenuItem onClick={handleOpenLog}>
           <ListItemIcon>
             <InfoIcon fontSize="small" />
           </ListItemIcon>

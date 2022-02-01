@@ -6,12 +6,10 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { FileStoreCashe } from './StorageService/store';
 import { GoogleFilesCashe } from './StorageService/GoogleDrive/gdrive-cashe';
 
-const store: FileStoreCashe = new GoogleFilesCashe();
-
 ReactDOM.render(
   <React.StrictMode>
     <CssBaseline />
-    <App globalStore={store}/>
+    <App />
   </React.StrictMode>,
   document.getElementById('root')
 );

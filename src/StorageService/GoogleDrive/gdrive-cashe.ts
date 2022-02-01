@@ -1,17 +1,14 @@
 import { formatISO, parseISO } from "date-fns";
-import { 
-  MapStoreCashe, 
-  StoreCashe, 
-  StoreEntry, 
-  FileStoreCashe, 
-  Entry 
+import {
+  MapStoreCashe,
+  StoreCashe,
+  StoreEntry,
+  FileStoreCashe,
+  Entry
 } from "../store";
 
-import { 
-  createAndSaveNewFile, 
-  getAllAccessibleFiles, 
-  getFileFromDrive, 
-  saveFile 
+import {
+  GoogleFileManager
 } from "./gdrive-file";
 
 export { GoogleFilesCashe }
@@ -24,12 +21,23 @@ export { GoogleFilesCashe }
  *******************************************************************/
 class GoogleFilesCashe implements FileStoreCashe {
 
+  // This store's in-memory implementation.
   private store: StoreCashe
-  private files: null | ({ name: string, tag: string, id: string })[]
+  // We can get a list of file headers without their content. Means 
+  // uses don't need to load content they're not using. 
+  private fileHeaders: null | ({ name: string, tag: string, id: string })[]
 
-  constructor() {
+  // We use this to ensure that if the app requests the same file twice,
+  // it only actually gets loaded once. I'm not counting on users
+  // editing files while the app is running. If that happens, they'll
+  // have to re-load the app in order to reload the files. (Could be
+  // done with a button too, just use "store.clear()");
+  private requests: Map<string, Promise<void>>
+
+  constructor(private fm: GoogleFileManager) {
+    this.requests = new Map();
     this.store = new MapStoreCashe();
-    this.files = null
+    this.fileHeaders = null
   }
 
   read(): StoreEntry[] {
@@ -57,14 +65,15 @@ class GoogleFilesCashe implements FileStoreCashe {
   }
 
   clear(): void {
-    this.files = null
+    this.fileHeaders = null
     this.store.clear();
+    this.requests = new Map();
   }
 
   getTags(): string[] {
     return Array.from(new Set([
       ...this.store.getTags(),
-      ...this.files?.map(v => v.tag) || []
+      ...this.fileHeaders?.map(v => v.tag) || []
     ]))
   }
 
@@ -75,12 +84,21 @@ class GoogleFilesCashe implements FileStoreCashe {
   async requestBytag(tag: string): Promise<Entry[]> {
     const entries = this.entriesByTag(tag);
     await this.casheAllAccessibleFiles();
-    const listed = this.files?.find(v => v.tag == tag);
+    const listed = this.fileHeaders?.find(v => v.tag == tag);
     if (entries.length < 1 && listed == null) {
       return [];
     } else if (entries.length < 1 && listed != null) {
-      const { content } = await getFileFromDrive(listed.id);
-      this.cashFileContent(tag, content);
+
+      let currentRequest = this.requests.get(listed.id);
+      if (currentRequest !== undefined) {
+        await currentRequest;
+      } else {
+        const filePromise = this.fm.getFileFromDrive(listed.id);
+        this.requests.set(listed.id, filePromise.then(() => {}));
+        const { content } = await filePromise;
+        this.cashFileContent(tag, content);
+      }
+
       return this.entriesByTag(tag);
     } else {
       return entries;
@@ -93,8 +111,8 @@ class GoogleFilesCashe implements FileStoreCashe {
   }
 
   async casheAllAccessibleFiles() {
-    if (this.files == null) {
-      const files = await getAllAccessibleFiles();
+    if (this.fileHeaders == null) {
+      const files = await this.fm.getAllAccessibleFiles();
       this.addFiles(files);
     }
   }
@@ -104,21 +122,21 @@ class GoogleFilesCashe implements FileStoreCashe {
       return;
     }
 
-    if (this.files == null) {
-      this.files = [];
+    if (this.fileHeaders == null) {
+      this.fileHeaders = [];
     }
 
     files.forEach(({ name, id }) => {
       const idx = name.search(/(-[0123456789]*)?-TA.json/);
-      if (idx > -1 && this.files != null) {
+      if (idx > -1 && this.fileHeaders != null) {
         const tag = name.substring(0, idx);
-        const prevIdx = this.files?.findIndex(v => v.tag == tag);
+        const prevIdx = this.fileHeaders?.findIndex(v => v.tag == tag);
         const newMetaFile = { name, tag, id };
 
         if (prevIdx == -1) {
-          this.files.push(newMetaFile);
+          this.fileHeaders.push(newMetaFile);
         } else {
-          this.files[prevIdx] = newMetaFile;
+          this.fileHeaders[prevIdx] = newMetaFile;
         }
       }
     });
@@ -162,7 +180,7 @@ class GoogleFilesCashe implements FileStoreCashe {
 
   saveFile(tag: string) {
     const entries = this.store.entriesByTag(tag);
-    const listed = this.files?.find(v => v.tag == tag);
+    const listed = this.fileHeaders?.find(v => v.tag == tag);
 
     const content = {
       version: "0.1.0",
@@ -173,10 +191,10 @@ class GoogleFilesCashe implements FileStoreCashe {
     }
 
     if (listed != null && listed.id.length > 0) {
-      saveFile({ id: listed.id, name: listed.name, content });
+      this.fm.saveFile({ id: listed.id, name: listed.name, content });
     } else if (listed == null) {
       this.addFiles([{ name: `${tag}-TA.json`, id: "" }]);
-      createAndSaveNewFile(tag, content).then(file =>
+      this.fm.createAndSaveNewFile(tag, content).then(file =>
         this.addFiles([{ name: file.name, id: file.id }])
       );
     }

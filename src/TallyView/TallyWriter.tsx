@@ -50,7 +50,7 @@ function TallyWriter(
 
     storeDispatch({
       type: "Write",
-      payload: { tag, date: new Date(), count }
+      entry: { tag, date: new Date(), count }
     });
 
   }

@@ -209,7 +209,8 @@ function EditEntryDialog(
       if (!shallowEqual(state, newEntry)) {
         storeDispatch({
           type: "Update",
-          payload: { oldEntry: state, newEntry }
+          oldEntry: state, 
+          newEntry
         });
       }
 
@@ -222,7 +223,7 @@ function EditEntryDialog(
     if (open) {
       storeDispatch({
         type: "Delete",
-        payload: state
+        entry: state
       });
 
       handleClose();

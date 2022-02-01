@@ -15,6 +15,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/gapi": "^0.0.41",
     "@types/gapi.auth2": "^0.0.56",
+    "@types/gapi.client.drive": "^3.0.13",
     "@types/jest": "^27.4.0",
     "@types/node": "^16.11.19",
     "@types/react": "^17.0.38",
