@@ -107,6 +107,19 @@ async function getOAuthInstance(): Promise<gapi.auth2.GoogleAuthBase> {
 
     console.log("User is logging in");
 
+    setTimeout(async () => {
+
+      if(!isLoggedIn) {
+        console.log("Timeout: No Response From Google's OAuth Client");
+        console.log("Direct query for status - isSignedIn:", gapi.auth2.getAuthInstance().isSignedIn.get());
+        console.log("Disconnecting and Clearing Cookies");
+        const instance = await getOAuthInstance();
+        instance.disconnect();
+      }
+      
+    }, 3000);
+
+
     await gapiClientInit;
     return Promise.resolve(instance.signIn())
       .then(() => instance)
@@ -135,8 +148,8 @@ async function getOauthToken(): Promise<string> {
 }
 
 async function getGapiClient(): Promise<any> {
-  await gapiClientInit
-  return gapi.client
+  await gapiClientInit;
+  return gapi.client;
 }
 
 async function getUserName(): Promise<string> {
