@@ -123,7 +123,7 @@ function TagSelectionMenu(
       >
         <MenuList dense>
           {
-            tags == "Loading" ?
+            tags === "Loading" ?
               <MenuItem disabled={true}>
                 <ListItemIcon>
                   <HourglassEmptyIcon fontSize="small" />
@@ -242,6 +242,7 @@ function UserLoginMenu(
 
   const handleLoggout = () => {
     handleCloseMenu();
+    storeDispatch({type: "Clear"});
     authService?.logout();
   }
 
