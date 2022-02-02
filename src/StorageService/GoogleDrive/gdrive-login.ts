@@ -25,7 +25,7 @@ class GoogleAPIAuthenticator_Impl implements GoogleAPIAuthenticator {
   login(): Promise<void> {
     return new Promise((resolve, reject) => {
 
-      console.log("User logging in");
+      console.log("User log in started");
 
       const logginTimeout = setTimeout(async () => {
 
@@ -41,17 +41,17 @@ class GoogleAPIAuthenticator_Impl implements GoogleAPIAuthenticator {
           resolve();
         }
 
-      }, 5000);
+      }, 10000);
 
       this.getOAuthInstance().signIn().then(
-        v => {
+        () => {
           clearTimeout(logginTimeout);
-          console.log("User loggin success", v);
+          console.log("User log in success");
           resolve();
         },
         e => {
           clearTimeout(logginTimeout);
-          console.error("User loggin error", e);
+          console.error("User log in error", e);
           reject(e);
         }
       )
@@ -63,8 +63,8 @@ class GoogleAPIAuthenticator_Impl implements GoogleAPIAuthenticator {
     console.log("User logging out");
 
     return gapi.auth2.getAuthInstance().signOut().then(
-      (v: any) => console.log("User loggout success", v),
-      (e: any) => console.error("User loggin error", e)
+      () => console.log("User loggout success"),
+      (e: any) => console.error("User loggout error", e)
     );
 
   }

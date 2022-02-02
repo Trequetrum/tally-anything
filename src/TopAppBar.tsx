@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { Dispatch } from 'react';
+
 import {
   AppBar,
   Box,
@@ -33,10 +35,10 @@ import {
 } from '@mui/icons-material';
 
 import { showGoogleDrivePicker } from './StorageService/GoogleDrive/gdrive-picker';
-import { StoreWriter } from './StorageService/store-reducer';
 import { TagState, LogginState } from './App';
 import { LoggerDialog } from './BasicComponents/Logger';
 import { GoogleAPIAuthenticator } from './StorageService/GoogleDrive/gdrive-login';
+import { StoreAction } from './StorageService/store-reducer';
 
 export { TopAppBar }
 
@@ -54,7 +56,7 @@ function TopAppBar(
     userName: string;
     tags: "Loading" | string[];
     setTagSate: (a: TagState) => void;
-    storeDispatch: StoreWriter;
+    storeDispatch: Dispatch<StoreAction>;
     authService: null | GoogleAPIAuthenticator
   }
 ) {
@@ -218,7 +220,7 @@ function UserLoginMenu(
     logginState: LogginState;
     setLoggedIn: (a: LogginState) => void;
     userName: string;
-    storeDispatch: StoreWriter;
+    storeDispatch: Dispatch<StoreAction>;
     authService: null | GoogleAPIAuthenticator;
   }
 ) {

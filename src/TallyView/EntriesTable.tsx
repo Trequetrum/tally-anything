@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Dispatch } from 'react';
 
 import {
   Entry,
@@ -38,16 +39,16 @@ import {
   NumericFieldOutput,
   NumericTextField
 } from '../BasicComponents/NumericTextField';
-import { StoreWriter } from '../StorageService/store-reducer';
+import { StoreAction } from '../StorageService/store-reducer';
 
 export { EntriesTable }
 
 function EntriesTable(
   { tag, entries, storeDispatch }:
     {
-      tag: string,
-      entries: Entry[],
-      storeDispatch: StoreWriter
+      tag: string;
+      entries: Entry[];
+      storeDispatch: Dispatch<StoreAction>;
     }
 ) {
 
@@ -182,13 +183,13 @@ function EntriesTable(
 function EditEntryDialog(
   { state, setState, storeDispatch }:
     {
-      state: "Closed" | StoreEntry,
-      setState: (a: "Closed" | StoreEntry) => void
-      storeDispatch: StoreWriter
+      state: "Closed" | StoreEntry;
+      setState: (a: "Closed" | StoreEntry) => void;
+      storeDispatch: Dispatch<StoreAction>;
     }
 ) {
 
-  const open = state != "Closed"
+  const open = state !== "Closed"
   const [num, setNum] = React.useState<NumericFieldOutput>("Empty")
   const [dateTimeValue, setDateTimeValue] = React.useState<Date | null>(null);
   const handleClose = () => setState("Closed")
@@ -209,7 +210,7 @@ function EditEntryDialog(
       if (!shallowEqual(state, newEntry)) {
         storeDispatch({
           type: "Update",
-          oldEntry: state, 
+          oldEntry: state,
           newEntry
         });
       }
@@ -239,7 +240,7 @@ function EditEntryDialog(
         flexDirection: 'column'
       }}>
         <NumericTextField
-          sx={{marginTop: 1}}
+          sx={{ marginTop: 1 }}
           id="count_by_numbers"
           label={`Update Tally: ${open ? state.count : ""}`}
           onChange={setNum}

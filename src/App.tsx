@@ -12,7 +12,7 @@ import {
   GoogleAPIAuthenticator
 } from './StorageService/GoogleDrive/gdrive-login'
 import { EmptyFileStore, Entry, FileStoreCashe } from './StorageService/store';
-import { implStoreWriter, StoreAction, StoreWriter } from './StorageService/store-reducer';
+import { implStoreWriter, StoreAction } from './StorageService/store-reducer';
 import { GoogleFilesCashe } from './StorageService/GoogleDrive/gdrive-cashe';
 import { GoogleFileManager } from './StorageService/GoogleDrive/gdrive-file';
 
@@ -24,7 +24,7 @@ type Failure = "Failure";
 
 type LogginState = Loading | Failure | boolean;
 
-type TagStateEntries =  Loading | Entry[];
+type TagStateEntries = Loading | Entry[];
 
 interface TagState {
   tag: null | string;
@@ -33,22 +33,26 @@ interface TagState {
 
 // Wrapping our persistant storeCashe stops react from bailing out of
 // a dispatch due to the store reference not changing.
-function storeReducer({ store }: { store: FileStoreCashe }, action: StoreAction): { store: FileStoreCashe } {
+function storeReducer(
+  { store }: { store: FileStoreCashe },
+  action: StoreAction
+): { store: FileStoreCashe } {
   return ({ store: implStoreWriter(store, action) });
 }
 
 function App(): JSX.Element {
 
-  const [storeWrapper, _storeDispatch] = React.useReducer(
+  const [storeWrapper, storeDispatch] = React.useReducer(
     storeReducer,
     { store: new EmptyFileStore() }
   );
-  const storeDispatch = _storeDispatch as StoreWriter
 
   const [logginState, setLogginState] = React.useState<LogginState>(false);
+  console.log("logginState:", logginState);
   const [auth, setAuth] = React.useState<null | GoogleAPIAuthenticator>(null);
 
   React.useEffect(() => {
+    console.log("Initializing Authenticator");
     getGoogleAPIAuthenticator(setLogginState).then(authy => {
       setAuth(authy);
       storeDispatch({
@@ -96,7 +100,7 @@ function OpeningMessage(
     {
       logginState: LogginState;
       tagState: TagState;
-      storeDispatch: StoreWriter;
+      storeDispatch: React.Dispatch<StoreAction>;
     }
 ): JSX.Element {
 
@@ -157,7 +161,11 @@ function useLoadingTagEntries(
 
   // If entries are set to loading, load them
   React.useEffect(() => {
-    if (tagState.tag != null && tagState.entries === "Loading") {
+    if (
+      isLoggedIn === true && 
+      tagState.tag != null && 
+      tagState.entries === "Loading"
+    ) {
       storeWrapper.store.requestBytag(tagState.tag).then((entries: Entry[]) => {
         setTagSate({
           tag: tagState.tag,
@@ -165,7 +173,7 @@ function useLoadingTagEntries(
         })
       });
     }
-  }, [tagState, storeWrapper]);
+  }, [isLoggedIn, tagState, storeWrapper]);
 
   // Set and read browser cookies to save/load default tag
   React.useEffect(() => {
@@ -200,10 +208,10 @@ function getCookie(key: string): string {
   let ca = document.cookie.split(';');
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i];
-    while (c.charAt(0) == ' ') {
+    while (c.charAt(0) === ' ') {
       c = c.substring(1);
     }
-    if (c.indexOf(name) == 0) {
+    if (c.indexOf(name) === 0) {
       return c.substring(name.length, c.length);
     }
   }

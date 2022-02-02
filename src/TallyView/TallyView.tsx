@@ -1,23 +1,24 @@
 
+import { Dispatch } from 'react';
 import { Box } from '@mui/material';
 import { getDayOfYear, isThisMonth, isThisWeek, isThisYear } from 'date-fns'
 
 import { compareEntryTimeDesc, Entry } from '../StorageService/store'
-import { StoreWriter } from '../StorageService/store-reducer';
 import { EntriesTable } from './EntriesTable'
 import { SummaryTable } from './SummaryTable'
 import { TallyWriter } from './TallyWriter'
 import { mergeDays, sum } from '../util';
 import { TagStateEntries } from '../App';
+import { StoreAction } from '../StorageService/store-reducer';
 
 export { TallyView }
 
 function TallyView(
   { tag, entries, storeDispatch }:
     {
-      tag: string,
-      entries: TagStateEntries,
-      storeDispatch: StoreWriter
+      tag: string;
+      entries: TagStateEntries;
+      storeDispatch: Dispatch<StoreAction>;
     }
 ) {
 
@@ -81,7 +82,7 @@ function summary(entries: Entry[]): ({ label: string, value: number })[] {
   });
 
   const _dayOfTheWeek = currentDate.getDay();
-  const dayOfTheWeek = _dayOfTheWeek == 0 ? 7 : _dayOfTheWeek;
+  const dayOfTheWeek = _dayOfTheWeek === 0 ? 7 : _dayOfTheWeek;
   dispList.push({
     label: "Avg this Week:",
     value: sum(last7Days

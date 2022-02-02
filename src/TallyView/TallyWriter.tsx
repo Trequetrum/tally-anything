@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Dispatch } from 'react';
 
 import { NumericTextField, NumericFieldOutput } from '../BasicComponents/NumericTextField'
 import {
@@ -6,17 +7,17 @@ import {
   Button
 } from '@mui/material';
 import { MsgAlert } from '../BasicComponents/MsgAlert';
-import { StoreWriter } from '../StorageService/store-reducer';
 import { sum } from '../util';
+import { StoreAction } from '../StorageService/store-reducer';
 
 export { TallyWriter }
 
 function TallyWriter(
   { tag, tallyButtons, storeDispatch }:
     {
-      tag: string,
-      tallyButtons: number[],
-      storeDispatch: StoreWriter
+      tag: string;
+      tallyButtons: number[];
+      storeDispatch: Dispatch<StoreAction>;
     }
 ) {
 
@@ -30,14 +31,14 @@ function TallyWriter(
 
   const tallyClick = (count: number) => () => {
 
-    if (count == 0 && num === "Empty") {
+    if (count === 0 && num === "Empty") {
       setAlertDialogState({
         open: true,
         title: "Tally Not Recorded",
         message: "Custom field was left empty"
       });
       return;
-    } else if (count == 0 && num === "NaN") {
+    } else if (count === 0 && num === "NaN") {
       setAlertDialogState({
         open: true,
         title: "Tally Not Recorded",

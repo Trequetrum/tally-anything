@@ -1,6 +1,6 @@
 import { FileStoreCashe, StoreEntry } from "./store";
 
-export type { StoreWriter, StoreAction }
+export type { StoreAction }
 export { implStoreWriter }
 
 type StoreAction =
@@ -23,7 +23,6 @@ type StoreAction =
     files: ({ name: string, id: string })[];
   };
 
-type StoreWriter = (action: StoreAction) => FileStoreCashe;
 
 function implStoreWriter(store: FileStoreCashe, action: StoreAction): FileStoreCashe {
 
