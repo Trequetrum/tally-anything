@@ -49,9 +49,7 @@ function App(): JSX.Element {
   const [auth, setAuth] = React.useState<null | GoogleAPIAuthenticator>(null);
 
   React.useEffect(() => {
-    console.log("Getting getGoogleAPIAuthenticator")
     getGoogleAPIAuthenticator(setLogginState).then(authy => {
-      console.log("Setting Auth");
       setAuth(authy);
       storeDispatch({
         type: "NewStore",
