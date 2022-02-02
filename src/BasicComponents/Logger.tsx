@@ -7,6 +7,8 @@ import {
   DialogTitle, 
   Divider 
 } from "@mui/material";
+import { format, formatISO } from "date-fns";
+//import format from "date-fns/fp/format/index";
 
 export { LoggerDialog }
 
@@ -20,10 +22,15 @@ let consoleContents: LogEntry[] = [];
 
 linkConsole();
 
+// Just a note, this is not how I would implement logging in a larger
+// project. This is good for now as it lets me see errors in the 
+// browser without needing a developer toolkit. If something goes 
+// wonky/wrong on a friend's mobile device, I can ask them to check 
+// the log.
 function linkConsole() {
 
   function TS() {
-    return (new Date()).toLocaleString("sv", { timeZone: 'UTC' }) + "Z"
+    return format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
   }
 
   window.onerror = function (error, url, line) {
@@ -60,6 +67,7 @@ function linkConsole() {
   console.debug = hookLogType('debug', console.debug.bind(console));
 }
 
+// Component to display a list of LogEntry[]
 function LogContent({ content }: { content: LogEntry[] }) {
   return (
     <Box>
@@ -73,6 +81,7 @@ function LogContent({ content }: { content: LogEntry[] }) {
   )
 }
 
+// Display is single LogEntry.
 function LogEntry({ entry }: { entry: LogEntry }) {
 
   const { type, timeStamp, value } = entry;
@@ -97,6 +106,7 @@ function LogEntry({ entry }: { entry: LogEntry }) {
   );
 }
 
+// A full screen dialog to display the log in
 function LoggerDialog(
   { open, setOpen }:
     {
