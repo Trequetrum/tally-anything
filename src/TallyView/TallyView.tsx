@@ -60,8 +60,20 @@ function TallyView(
   );
 }
 
-function summary(entries: Entry[]): ({ label: string, avg: number, total: number })[] {
-  let dispList: ({ label: string, avg: number, total: number })[] = []
+function summary(
+  entries: Entry[]
+): ({ 
+  label: string, 
+  avg: number, 
+  avgPer: string, 
+  total: number 
+})[] {
+  let dispList: ({ 
+    label: string, 
+    avg: number, 
+    avgPer: string, 
+    total: number 
+  })[] = [];
 
   const mergedEntries = mergeDays(entries);
 
@@ -80,6 +92,7 @@ function summary(entries: Entry[]): ({ label: string, avg: number, total: number
   dispList.push({
     label: "Today:",
     avg: todayTotal / getHours(currentDate),
+    avgPer: "/hr",
     total: todayTotal
   });
 
@@ -87,6 +100,7 @@ function summary(entries: Entry[]): ({ label: string, avg: number, total: number
   dispList.push({
     label: "7 Days",
     avg: totalLast7Days / 7,
+    avgPer: "/dy",
     total: totalLast7Days
   });
 
@@ -94,6 +108,7 @@ function summary(entries: Entry[]): ({ label: string, avg: number, total: number
   dispList.push({
     label: "30 Days",
     avg: totalLast30Days / 30,
+    avgPer: "/dy",
     total: totalLast30Days
   });
 
@@ -106,6 +121,7 @@ function summary(entries: Entry[]): ({ label: string, avg: number, total: number
   dispList.push({
     label: "This Week:",
     avg: totalThisWeek / dayOfTheWeek,
+    avgPer: "/dy",
     total: totalThisWeek
   });
 
@@ -117,6 +133,7 @@ function summary(entries: Entry[]): ({ label: string, avg: number, total: number
   dispList.push({
     label: "This Month:",
     avg: totalThisMonth / dayOfTheMonth,
+    avgPer: "/dy",
     total: totalThisMonth
   });
 
@@ -125,6 +142,7 @@ function summary(entries: Entry[]): ({ label: string, avg: number, total: number
   dispList.push({
     label: "This Year:",
     avg: totalThisYear / dayOfTheYear,
+    avgPer: "/dy",
     total: totalThisYear
   });
 

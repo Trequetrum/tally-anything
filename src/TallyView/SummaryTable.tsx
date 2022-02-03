@@ -15,7 +15,12 @@ import { tallyRound } from '../util';
 export { SummaryTable }
 
 function SummaryTable(params: {
-  dispList: { label: string, avg: number, total: number }[];
+  dispList: {
+    label: string,
+    avg: number,
+    avgPer: string,
+    total: number
+  }[];
 }) {
   return (
     <Box sx={{ width: '100%' }}>
