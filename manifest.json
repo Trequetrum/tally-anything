@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Tally Anything",
+  "name": "Tally Anything: remember 'when' and 'how many'",
   "icons": [
     {
       "src": "favicon.ico",
