@@ -1,8 +1,11 @@
 
+import * as React from 'react';
+import { Dispatch } from 'react';
+
 import './App.css';
 import { TopAppBar } from './TopAppBar'
 import { TallyView } from './TallyView/TallyView'
-import * as React from 'react';
+
 import {
   Box
 } from '@mui/material';
@@ -62,11 +65,11 @@ function App(): JSX.Element {
 
   const userName = logginState === true? auth?.getUserName() || "" : ""
 
-  const [tagState, setTagSate] = useLoadingTagEntries(storeWrapper, logginState === true)
+  const [tagState, setTagState] = useLoadingTagEntries(storeWrapper, logginState === true)
 
   React.useEffect(() => {
     if(logginState === false){
-      setTagSate({tag:null, entries:"Loading"});
+      setTagState({tag:null, entries:"Loading"});
       storeDispatch({type: "Clear"});
     }
   },[logginState])
@@ -85,7 +88,7 @@ function App(): JSX.Element {
         setLoggedIn={setLogginState}
         userName={userName}
         tags={tagList}
-        setTagSate={setTagSate}
+        setTagSate={setTagState}
         storeDispatch={storeDispatch}
         authService={auth}
       />
@@ -149,16 +152,16 @@ function OpeningMessage(
 function useLoadingTagEntries(
   storeWrapper: { store: FileStoreCashe },
   isLoggedIn: boolean
-): [TagState, (a: TagState) => void] {
+): [TagState, Dispatch<React.SetStateAction<TagState>>] {
 
-  const [tagState, setTagSate] = React.useState({
+  const [tagState, setTagState] = React.useState({
     tag: null,
     entries: "Loading"
   } as TagState);
 
   // If the store has updated in any way, reload entries
   React.useEffect(
-    () => setTagSate(st => ({ tag: st.tag, entries: "Loading" })),
+    () => setTagState(st => ({ tag: st.tag, entries: "Loading" })),
     [storeWrapper]
   );
 
@@ -170,7 +173,7 @@ function useLoadingTagEntries(
       tagState.entries === "Loading"
     ) {
       storeWrapper.store.requestBytag(tagState.tag).then((entries: Entry[]) => {
-        setTagSate({
+        setTagState({
           tag: tagState.tag,
           entries
         })
@@ -185,7 +188,7 @@ function useLoadingTagEntries(
       if (cookieTag.length > 0) {
         storeWrapper.store.requestTags().then(tags => {
           if (tags.includes(cookieTag)) {
-            setTagSate({
+            setTagState({
               tag: cookieTag,
               entries: "Loading"
             });
@@ -197,7 +200,7 @@ function useLoadingTagEntries(
     }
   }, [storeWrapper, tagState, isLoggedIn]);
 
-  return [tagState, setTagSate];
+  return [tagState, setTagState];
 }
 
 function setCookie(key: string, value: string) {
