@@ -15,13 +15,17 @@ function loadPickerApi(): Promise<boolean> {
 
   if (loadPickerApiPromise == null) {
     loadPickerApiPromise = new Promise((resolve, reject) => {
-      gapi.load('picker', () => resolve(true));
-
       // Error if the picker takes too long to load.
       const timer = setTimeout(
         () => reject("Loading Google Picker Timed out after 5 seconds"),
         5000
       );
+
+      gapi.load('picker', () => {
+        clearTimeout(timer);
+        resolve(true);
+      });
+      
     });
   }
 
@@ -45,7 +49,7 @@ async function showGoogleDrivePicker(
 
   const pickerCallback = (response: any) => {
     // Check that the user picked at least one file
-    if (response[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
+    if (response[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
       onDocumentSelection(response[google.picker.Response.DOCUMENTS]);
     }
   }

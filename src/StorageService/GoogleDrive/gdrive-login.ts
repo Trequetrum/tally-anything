@@ -20,7 +20,6 @@ interface GoogleAPIAuthenticator {
 }
 
 class GoogleAPIAuthenticator_Impl implements GoogleAPIAuthenticator {
-  constructor() { }
 
   login(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -30,12 +29,11 @@ class GoogleAPIAuthenticator_Impl implements GoogleAPIAuthenticator {
       const logginTimeout = setTimeout(async () => {
 
         const isLoggedIn = this.getOAuthInstance().isSignedIn.get();
-        console.log("Loggin Timeout has triggered - isSignedIn:", isLoggedIn);
+        console.log("Log in Timeout has triggered - isSignedIn:", isLoggedIn);
         if (!isLoggedIn) {
-          const err = "User loggin Timeout: After signin, no response From Google's OAuth Client";
+          const err = "User log in Timeout: After signin, no response From Google's OAuth Client";
           console.error(err);
-          console.log("Disconnecting Google's Signin Client");
-          this.getOAuthInstance().disconnect();
+          this.revokeAccess();
           reject(err);
         } else {
           resolve();
@@ -90,8 +88,8 @@ class GoogleAPIAuthenticator_Impl implements GoogleAPIAuthenticator {
 
   revokeAccess(): void {
 
-    console.log("Revoking access to google drive");
-    this.getOAuthInstance().disconnect()
+    console.log("Revoking Access Scopes & Disconnecting Google's Signin Client");
+    this.getOAuthInstance().disconnect();
 
   }
 }
@@ -145,14 +143,13 @@ function getGoogleAPIAuthenticator(
 ): Promise<GoogleAPIAuthenticator> {
 
   return loadAndInitGoogleScripts().then(() => {
-    // GAPI Client is initialized
 
+    // GAPI Client is initialized
     // Listen for loggin state changes.
     gapi.auth2.getAuthInstance().isSignedIn.listen(logginCallback);
-
     // Handle the initial loggin state.
     logginCallback(gapi.auth2.getAuthInstance().isSignedIn.get());
-  }).then(
-    () => new GoogleAPIAuthenticator_Impl()
-  );
+
+    return new GoogleAPIAuthenticator_Impl();
+  });
 }

@@ -45,7 +45,7 @@ function TallyWriter(
         message: "Custom field does not contain a number"
       });
       return;
-    } else if (count == 0) {
+    } else if (count === 0) {
       count = num as number
     }
 
@@ -120,14 +120,14 @@ function fitButton(type: "higher" | "lower", tallyButtons: number[]): number {
   let trying = trunc;
   let include: null | number = null;
   while (include == null) {
-    if (tallyButtons.includes(trying == 0 ? 1 : trying)) {
+    if (tallyButtons.includes(trying === 0 ? 1 : trying)) {
       if (type === "higher") {
         trying += 5;
       } else {
         trying -= 5;
       }
     } else {
-      include = trying == 0 ? 1 : trying;
+      include = trying === 0 ? 1 : trying;
     }
   }
 

@@ -52,7 +52,6 @@ export function tallyRound(a: number): number {
 }
 
 export function mergeDays(a: Entry[]): Entry[] {
-  const dayInMs = 86400000
   const mapo = new Map<number, number>();
   for (let {date, count} of a) {
     const dayMs = new Date(

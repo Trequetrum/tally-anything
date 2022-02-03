@@ -7,7 +7,7 @@ import {
   DialogTitle, 
   Divider 
 } from "@mui/material";
-import { format, formatISO } from "date-fns";
+import { format } from "date-fns";
 //import format from "date-fns/fp/format/index";
 
 export { LoggerDialog }
@@ -74,7 +74,7 @@ function LogContent({ content }: { content: LogEntry[] }) {
       <Divider />
       {
         content.map((itm, i) =>
-          <LogEntry key={i} entry={itm} />
+          <LogEntryView key={i} entry={itm} />
         )
       }
     </Box>
@@ -82,7 +82,7 @@ function LogContent({ content }: { content: LogEntry[] }) {
 }
 
 // Display is single LogEntry.
-function LogEntry({ entry }: { entry: LogEntry }) {
+function LogEntryView({ entry }: { entry: LogEntry }) {
 
   const { type, timeStamp, value } = entry;
 

@@ -18,7 +18,6 @@ const FOLDER_TYPE = 'application/vnd.google-apps.folder';
 const FOLDER_NAME = 'TallyAnythingDocs';
 // filename appended
 const FILENAME_AFFIX = '-TA';
-let folderId = ""
 
 class GoogleFileManager {
 
@@ -273,7 +272,7 @@ class GoogleFileManager {
  *******************************************************************/
 function handleGoogleClientError(auth: GoogleAPIAuthenticator) {
   return (err: any): never => {
-    if (err?.result?.error?.errors[0]?.reason == "insufficientPermissions") {
+    if (err?.result?.error?.errors[0]?.reason === "insufficientPermissions") {
       auth.revokeAccess();
 
       alert(`

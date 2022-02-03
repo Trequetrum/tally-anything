@@ -19,12 +19,9 @@ import { GoogleFileManager } from './StorageService/GoogleDrive/gdrive-file';
 export type { TagState, TagStateEntries, LogginState }
 export { App }
 
-type Loading = "Loading";
-type Failure = "Failure";
+type LogginState = "Loading" | "Failure" | boolean;
 
-type LogginState = Loading | Failure | boolean;
-
-type TagStateEntries = Loading | Entry[];
+type TagStateEntries = "Loading" | Entry[];
 
 interface TagState {
   tag: null | string;
@@ -48,7 +45,6 @@ function App(): JSX.Element {
   );
 
   const [logginState, setLogginState] = React.useState<LogginState>(false);
-  console.log("logginState:", logginState);
   const [auth, setAuth] = React.useState<null | GoogleAPIAuthenticator>(null);
 
   React.useEffect(() => {
@@ -64,9 +60,16 @@ function App(): JSX.Element {
     });
   }, []);
 
-  const userName = auth?.getUserName() || ""
+  const userName = logginState === true? auth?.getUserName() || "" : ""
 
   const [tagState, setTagSate] = useLoadingTagEntries(storeWrapper, logginState === true)
+
+  React.useEffect(() => {
+    if(logginState === false){
+      setTagSate({tag:null, entries:"Loading"});
+      storeDispatch({type: "Clear"});
+    }
+  },[logginState])
 
   const [tagList, setTagList] = React.useState<"Loading" | string[]>("Loading")
   React.useEffect(() => {

@@ -244,7 +244,6 @@ function UserLoginMenu(
 
   const handleLoggout = () => {
     handleCloseMenu();
-    storeDispatch({type: "Clear"});
     authService?.logout();
   }
 
@@ -257,7 +256,7 @@ function UserLoginMenu(
 
   const handleRevokeAccess = () => {
     handleCloseMenu();
-    authService?.logout();
+    authService?.revokeAccess();
   }
 
   const handleLogin = () => {

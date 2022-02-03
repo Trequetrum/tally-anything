@@ -90,7 +90,7 @@ class MapStoreCashe implements StoreCashe {
 }
 
 function equalEntry(a: Entry, b: Entry): boolean {
-  return a.count == b.count && a.date.getTime() == b.date.getTime();
+  return a.count === b.count && a.date.getTime() === b.date.getTime();
 }
 
 function equalStoreEntry(a: StoreEntry, b: StoreEntry): boolean {

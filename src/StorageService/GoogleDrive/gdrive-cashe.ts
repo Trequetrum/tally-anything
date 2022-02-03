@@ -59,7 +59,7 @@ class GoogleFilesCashe implements FileStoreCashe {
     this.store.update(oldEntry, newEntry);
 
     this.saveFile(oldEntry.tag);
-    if (oldEntry.tag != newEntry.tag) {
+    if (oldEntry.tag !== newEntry.tag) {
       this.saveFile(newEntry.tag);
     }
 
@@ -94,7 +94,7 @@ class GoogleFilesCashe implements FileStoreCashe {
 
     const entries = this.entriesByTag(tag);
     await this.casheAllAccessibleFiles();
-    const listed = this.fileHeaders?.find(v => v.tag == tag);
+    const listed = this.fileHeaders?.find(v => v.tag === tag);
 
     if (entries.length < 1 && listed == null) {
       // This tag doesn't have entries in memory, nor can we load
@@ -154,7 +154,7 @@ class GoogleFilesCashe implements FileStoreCashe {
       const idx = name.search(/(-[0123456789]*)?-TA.json/);
       if (idx > -1 && this.fileHeaders != null) {
         const tag = name.substring(0, idx);
-        const prevIdx = this.fileHeaders?.findIndex(v => v.tag == tag);
+        const prevIdx = this.fileHeaders?.findIndex(v => v.tag === tag);
         const newMetaFile = { name, tag, id };
 
         if (prevIdx === -1) {
@@ -204,7 +204,7 @@ class GoogleFilesCashe implements FileStoreCashe {
 
   saveFile(tag: string) {
     const entries = this.store.entriesByTag(tag);
-    const listed = this.fileHeaders?.find(v => v.tag == tag);
+    const listed = this.fileHeaders?.find(v => v.tag === tag);
 
     const content = {
       version: "0.1.0",
