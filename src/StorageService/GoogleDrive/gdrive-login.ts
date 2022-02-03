@@ -26,29 +26,12 @@ class GoogleAPIAuthenticator_Impl implements GoogleAPIAuthenticator {
 
       console.log("User log in started");
 
-      const logginTimeout = setTimeout(async () => {
-
-        const isLoggedIn = this.getOAuthInstance().isSignedIn.get();
-        console.log("Log in Timeout has triggered - isSignedIn:", isLoggedIn);
-        if (!isLoggedIn) {
-          const err = "User log in Timeout: After signin, no response From Google's OAuth Client";
-          console.error(err);
-          this.revokeAccess();
-          reject(err);
-        } else {
-          resolve();
-        }
-
-      }, 10000);
-
       this.getOAuthInstance().signIn().then(
         () => {
-          clearTimeout(logginTimeout);
           console.log("User log in success");
           resolve();
         },
         e => {
-          clearTimeout(logginTimeout);
           console.error("User log in error", e);
           reject(e);
         }

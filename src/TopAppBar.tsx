@@ -306,15 +306,7 @@ function UserLoginMenu(
                 <AddToDriveIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText inset>Grant Files</ListItemText>
-            </MenuItem>,
-
-            <MenuItem key="revoke" onClick={handleRevokeAccess}>
-              <ListItemIcon>
-                <LockResetIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText inset>Revoke Access</ListItemText>
             </MenuItem>
-
             ] :
             logginState === false ?
               <MenuItem onClick={handleLogin}>
@@ -325,6 +317,13 @@ function UserLoginMenu(
               </MenuItem>
               : []
         }
+        <Divider />
+        <MenuItem key="revoke" onClick={handleRevokeAccess}>
+          <ListItemIcon>
+            <LockResetIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText inset>Revoke Access</ListItemText>
+        </MenuItem>
         <MenuItem onClick={handleOpenLog}>
           <ListItemIcon>
             <InfoIcon fontSize="small" />
