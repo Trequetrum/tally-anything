@@ -52,7 +52,9 @@ export function tallyRound(a: number): number {
 }
 
 export function mergeDays(a: Entry[]): Entry[] {
+
   const mapo = new Map<number, number>();
+
   for (let {date, count} of a) {
     const dayMs = new Date(
       date.getFullYear(), 
@@ -62,7 +64,9 @@ export function mergeDays(a: Entry[]): Entry[] {
 
     const prev = mapo.get(dayMs) || 0;
     mapo.set(dayMs, prev + count);
+
   }
+  
   return Array.from(
     mapo, 
     ([date, count]) => ({ date: new Date(date), count })

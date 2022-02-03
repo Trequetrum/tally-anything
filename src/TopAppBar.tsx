@@ -74,13 +74,17 @@ function TopAppBar(
             TALLY
           </Typography>
 
-          <UserLoginMenu
-            logginState={logginState}
-            setLoggedIn={setLoggedIn}
-            userName={userName}
-            storeDispatch={storeDispatch}
-            authService={authService}
-          />
+          {
+            authService !== null ?
+              <UserLoginMenu
+                logginState={logginState}
+                setLoggedIn={setLoggedIn}
+                userName={userName}
+                storeDispatch={storeDispatch}
+                authService={authService}
+              /> :
+              []
+          }
 
         </Toolbar>
       </AppBar>
@@ -221,7 +225,7 @@ function UserLoginMenu(
     setLoggedIn: (a: LogginState) => void;
     userName: string;
     storeDispatch: Dispatch<StoreAction>;
-    authService: null | GoogleAPIAuthenticator;
+    authService: GoogleAPIAuthenticator;
   }
 ) {
 
@@ -244,7 +248,7 @@ function UserLoginMenu(
 
   const handleLoggout = () => {
     handleCloseMenu();
-    authService?.logout();
+    authService.logout();
   }
 
   const handleGrantFiles = () => {
@@ -256,13 +260,13 @@ function UserLoginMenu(
 
   const handleRevokeAccess = () => {
     handleCloseMenu();
-    authService?.revokeAccess();
+    authService.revokeAccess();
   }
 
   const handleLogin = () => {
     handleCloseMenu();
     setLoggedIn("Loading")
-    authService?.login().catch(() => {
+    authService.login().catch(() => {
       setLoggedIn("Failure");
     });
   }

@@ -9,7 +9,10 @@ import { TallyView } from './TallyView/TallyView'
 import {
   Box
 } from '@mui/material';
-import { CallMade as CallMadeIcon } from '@mui/icons-material';
+import { 
+  PersonSearch as PersonSearchIcon,
+  CallMade as CallMadeIcon 
+} from '@mui/icons-material';
 import {
   getGoogleAPIAuthenticator,
   GoogleAPIAuthenticator
@@ -63,16 +66,17 @@ function App(): JSX.Element {
     });
   }, []);
 
-  const userName = logginState === true? auth?.getUserName() || "" : ""
+  // Get the userName if we're logged in and there's an auth object 
+  const userName = logginState === true ? auth?.getUserName() || "" : ""
 
-  const [tagState, setTagState] = useLoadingTagEntries(storeWrapper, logginState === true)
+  const [tagState, setTagState] = useLoadingTagEntries(storeWrapper, logginState === true);
 
   React.useEffect(() => {
-    if(logginState === false){
-      setTagState({tag:null, entries:"Loading"});
-      storeDispatch({type: "Clear"});
+    if (logginState === false) {
+      setTagState({ tag: null, entries: "Loading" });
+      storeDispatch({ type: "Clear" });
     }
-  },[logginState])
+  }, [logginState, setTagState])
 
   const [tagList, setTagList] = React.useState<"Loading" | string[]>("Loading")
   React.useEffect(() => {
@@ -93,6 +97,7 @@ function App(): JSX.Element {
         authService={auth}
       />
       <OpeningMessage
+        auth={auth}
         logginState={logginState}
         tagState={tagState}
         storeDispatch={storeDispatch}
@@ -102,15 +107,22 @@ function App(): JSX.Element {
 }
 
 function OpeningMessage(
-  { logginState, tagState, storeDispatch }:
+  { auth, logginState, tagState, storeDispatch }:
     {
+      auth: null | GoogleAPIAuthenticator;
       logginState: LogginState;
       tagState: TagState;
       storeDispatch: React.Dispatch<StoreAction>;
     }
 ): JSX.Element {
 
-  if (logginState === false) {
+  if (auth === null) {
+
+    return <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+      <h4><PersonSearchIcon /> Loading Third Party Google Client...</h4>
+    </Box>;
+
+  } else if (logginState === false) {
 
     return <Box sx={{ display: 'flex', justifyContent: 'center' }}>
       <h4>Login to Begin! <CallMadeIcon /></h4>
@@ -125,7 +137,8 @@ function OpeningMessage(
   } else if (logginState === "Failure") {
 
     return <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <h4>Loggin Failed, try again?</h4>
+      <h4>Loggin Failed</h4>
+      <pre>Perhaps refresh the page, then try again</pre>
     </Box>;
 
   } else {
@@ -168,8 +181,8 @@ function useLoadingTagEntries(
   // If entries are set to loading, load them
   React.useEffect(() => {
     if (
-      isLoggedIn === true && 
-      tagState.tag != null && 
+      isLoggedIn === true &&
+      tagState.tag != null &&
       tagState.entries === "Loading"
     ) {
       storeWrapper.store.requestBytag(tagState.tag).then((entries: Entry[]) => {
