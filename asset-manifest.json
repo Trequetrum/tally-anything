@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/tally-anything/static/css/main.073c9b0a.css",
-    "main.js": "/tally-anything/static/js/main.b9b511fe.js",
+    "main.js": "/tally-anything/static/js/main.3b490ba2.js",
     "index.html": "/tally-anything/index.html",
     "main.073c9b0a.css.map": "/tally-anything/static/css/main.073c9b0a.css.map",
-    "main.b9b511fe.js.map": "/tally-anything/static/js/main.b9b511fe.js.map"
+    "main.3b490ba2.js.map": "/tally-anything/static/js/main.3b490ba2.js.map"
   },
   "entrypoints": [
     "static/css/main.073c9b0a.css",
-    "static/js/main.b9b511fe.js"
+    "static/js/main.3b490ba2.js"
   ]
 }
