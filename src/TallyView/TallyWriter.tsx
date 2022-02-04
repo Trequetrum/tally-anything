@@ -61,7 +61,7 @@ function TallyWriter(
   const prefabClicks = organiseTallyButtons(tallyButtons);
 
   return (
-    <Paper elevation={6} sx={{ padding: 1, mx: 1 }}>
+    <Paper elevation={1} sx={{ padding: 1, mx: 1 }}>
       <Box sx={{
         display: 'grid',
         gridTemplate: "'txt txt txt tAny' 't0 t1 t2 t3' 't4 t5 t6 t7'",

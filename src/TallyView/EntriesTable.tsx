@@ -99,7 +99,7 @@ function EntriesTable(
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Paper elevation={6} sx={{ mx: 1}}>
+      <Paper elevation={1} sx={{ mx: 1}}>
         <TableContainer>
           <Table
             aria-labelledby="tableTitle"
