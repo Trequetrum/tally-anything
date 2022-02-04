@@ -42,7 +42,7 @@ function SummaryTable({ entries }: { entries: Entry[] }) {
           <TableHead>
             <TableRow>
               <TableCell></TableCell>
-              <TableCell align="right">Avg</TableCell>
+              <TableCell align="right">Avg/Day</TableCell>
               <TableCell align="right">Total</TableCell>
             </TableRow>
           </TableHead>
