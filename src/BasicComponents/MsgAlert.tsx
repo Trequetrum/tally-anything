@@ -4,34 +4,30 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Button
+  Button,
 } from "@mui/material";
 
 /********************************************************************
  * A MUI alert with title and message.
  * State is created by the parent componant
  *******************************************************************/
-export function MsgAlert(
-  { state, setState }:
-    {
-      state: { 
-        open: boolean;
-        title: string; 
-        message: string;
-      };
-      setState: (a: { 
-        open: boolean;
-        title: string; 
-        message: string;
-      }) => void;
-    }
-) {
-
-  const handleClose = () => setState({ 
-    open: false,
-    title: "",
-    message: ""
-  });
+export function MsgAlert({
+  state,
+  setState,
+}: {
+  state: {
+    open: boolean;
+    title: string;
+    message: string;
+  };
+  setState: (a: { open: boolean; title: string; message: string }) => void;
+}) {
+  const handleClose = () =>
+    setState({
+      open: false,
+      title: "",
+      message: "",
+    });
 
   return (
     <Dialog
@@ -40,9 +36,7 @@ export function MsgAlert(
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">
-        {state.title}
-      </DialogTitle>
+      <DialogTitle id="alert-dialog-title">{state.title}</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
           {state.message}
@@ -54,5 +48,5 @@ export function MsgAlert(
         </Button>
       </DialogActions>
     </Dialog>
-  )
+  );
 }

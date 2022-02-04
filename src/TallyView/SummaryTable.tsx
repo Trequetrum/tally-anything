@@ -7,7 +7,8 @@ import {
   TableCell,
   TableRow,
   Paper,
-  TableHead
+  TableHead,
+  tableCellClasses
 } from '@mui/material';
 
 import { tallyRound } from '../util';
@@ -18,16 +19,20 @@ function SummaryTable(params: {
   dispList: {
     label: string,
     avg: number,
-    avgPer: string,
     total: number
   }[];
 }) {
   return (
     <Box sx={{ width: '100%' }}>
-      <Paper sx={{ width: '100%', mb: 2 }}>
+      <Paper elevation={6} sx={{ width: '100%', mb: 2 }}>
         <Table
           size="small"
           aria-label="a dense table"
+          sx={{
+            [`& .${tableCellClasses.root}`]: {
+              borderBottom: "none"
+            }
+          }}
         >
           <TableHead>
             <TableRow>
@@ -42,8 +47,12 @@ function SummaryTable(params: {
                 <TableCell component="th" scope="row">
                   <em>{v.label}</em>
                 </TableCell>
-                <TableCell align="right">{tallyRound(v.avg)}</TableCell>
-                <TableCell align="right">{tallyRound(v.total)}</TableCell>
+                <TableCell align="right">
+                  {v.avg !== v.total ? tallyRound(v.avg) : ""}
+                </TableCell>
+                <TableCell align="right">
+                  {tallyRound(v.total)}
+                </TableCell>
               </TableRow>
             )}
           </TableBody>

@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { Dispatch } from 'react';
+import * as React from "react";
+import { Dispatch } from "react";
 
 import {
   AppBar,
@@ -18,8 +18,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  TextField
-} from '@mui/material';
+  TextField,
+} from "@mui/material";
 
 import {
   Info as InfoIcon,
@@ -31,83 +31,81 @@ import {
   PlaylistAddCheckCircle as PlaylistAddCheckCircleIcon,
   PlaylistAddCircle as PlaylistAddCircleIcon,
   AccountCircle as AccountCircleIcon,
-  HourglassEmpty as HourglassEmptyIcon
-} from '@mui/icons-material';
+  HourglassEmpty as HourglassEmptyIcon,
+} from "@mui/icons-material";
 
-import { showGoogleDrivePicker } from './StorageService/GoogleDrive/gdrive-picker';
-import { TagState, LogginState } from './App';
-import { LoggerDialog } from './BasicComponents/Logger';
-import { GoogleAPIAuthenticator } from './StorageService/GoogleDrive/gdrive-login';
-import { StoreAction } from './StorageService/store-reducer';
+import { showGoogleDrivePicker } from "./StorageService/GoogleDrive/gdrive-picker";
+import { TagState, LogginState } from "./App";
+import { LoggerDialog } from "./BasicComponents/Logger";
+import { GoogleAPIAuthenticator } from "./StorageService/GoogleDrive/gdrive-login";
+import { StoreAction } from "./StorageService/store-reducer";
 
-export { TopAppBar }
+export { TopAppBar };
 
-function TopAppBar(
-  { logginState,
-    setLoggedIn,
-    userName,
-    tags,
-    setTagSate,
-    storeDispatch,
-    authService
-  }: {
-    logginState: LogginState;
-    setLoggedIn: (a: LogginState) => void;
-    userName: string;
-    tags: "Loading" | string[];
-    setTagSate: (a: TagState) => void;
-    storeDispatch: Dispatch<StoreAction>;
-    authService: null | GoogleAPIAuthenticator
-  }
-) {
-
+function TopAppBar({
+  logginState,
+  setLoggedIn,
+  userName,
+  tags,
+  setTagSate,
+  storeDispatch,
+  authService,
+}: {
+  logginState: LogginState;
+  setLoggedIn: (a: LogginState) => void;
+  userName: string;
+  tags: "Loading" | string[];
+  setTagSate: (a: TagState) => void;
+  storeDispatch: Dispatch<StoreAction>;
+  authService: null | GoogleAPIAuthenticator;
+}) {
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
         <Toolbar>
-          {
-            logginState === true ?
-              <TagSelectionMenu tags={tags} setTagSate={setTagSate} /> :
-              []
-          }
+          {logginState === true ? (
+            <TagSelectionMenu tags={tags} setTagSate={setTagSate} />
+          ) : (
+            []
+          )}
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             TALLY
           </Typography>
 
-          {
-            authService !== null ?
-              <UserLoginMenu
-                logginState={logginState}
-                setLoggedIn={setLoggedIn}
-                userName={userName}
-                storeDispatch={storeDispatch}
-                authService={authService}
-              /> :
-              []
-          }
-
+          {authService !== null ? (
+            <UserLoginMenu
+              logginState={logginState}
+              setLoggedIn={setLoggedIn}
+              userName={userName}
+              storeDispatch={storeDispatch}
+              authService={authService}
+            />
+          ) : (
+            []
+          )}
         </Toolbar>
       </AppBar>
     </Box>
   );
 }
 
-function TagSelectionMenu(
-  { tags, setTagSate }:
-    {
-      tags: "Loading" | string[];
-      setTagSate: (a: TagState) => void;
-    }
-) {
-
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
+function TagSelectionMenu({
+  tags,
+  setTagSate,
+}: {
+  tags: "Loading" | string[];
+  setTagSate: (a: TagState) => void;
+}) {
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
+    null
+  );
   const isMenuOpen = Boolean(menuAnchorEl);
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setMenuAnchorEl(event.currentTarget);
   };
   const handleMenuClose = () => setMenuAnchorEl(null);
 
-  const [newTagDialogOpen, setNewTagDialogOpen] = React.useState(false)
+  const [newTagDialogOpen, setNewTagDialogOpen] = React.useState(false);
 
   return (
     <Box>
@@ -128,35 +126,36 @@ function TagSelectionMenu(
         onClose={handleMenuClose}
       >
         <MenuList dense>
-          {
-            tags === "Loading" ?
-              <MenuItem disabled={true}>
+          {tags === "Loading" ? (
+            <MenuItem disabled={true}>
+              <ListItemIcon>
+                <HourglassEmptyIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText inset>...loading</ListItemText>
+            </MenuItem>
+          ) : (
+            tags.map((tag) => (
+              <MenuItem
+                key={tag}
+                onClick={() => {
+                  setTagSate({ tag, entries: "Loading" });
+                  handleMenuClose();
+                }}
+              >
                 <ListItemIcon>
-                  <HourglassEmptyIcon fontSize="small" />
+                  <PlaylistAddCheckCircleIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText inset>...loading</ListItemText>
+                <ListItemText inset>{tag}</ListItemText>
               </MenuItem>
-              :
-              tags.map(tag =>
-                <MenuItem
-                  key={tag}
-                  onClick={() => {
-                    setTagSate({ tag, entries: "Loading" });
-                    handleMenuClose();
-                  }}
-                >
-                  <ListItemIcon>
-                    <PlaylistAddCheckCircleIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText inset>{tag}</ListItemText>
-                </MenuItem>
-              )
-          }
+            ))
+          )}
           <Divider />
-          <MenuItem onClick={() => {
-            setNewTagDialogOpen(true);
-            handleMenuClose();
-          }}>
+          <MenuItem
+            onClick={() => {
+              setNewTagDialogOpen(true);
+              handleMenuClose();
+            }}
+          >
             <ListItemIcon>
               <PlaylistAddCircleIcon fontSize="small" />
             </ListItemIcon>
@@ -173,31 +172,33 @@ function TagSelectionMenu(
   );
 }
 
-function NewThingDialog(
-  { open, setOpen, setTagSate }:
-    {
-      open: boolean;
-      setOpen: (a: boolean) => void;
-      setTagSate: (a: TagState) => void;
-    }
-) {
+function NewThingDialog({
+  open,
+  setOpen,
+  setTagSate,
+}: {
+  open: boolean;
+  setOpen: (a: boolean) => void;
+  setTagSate: (a: TagState) => void;
+}) {
+  const [tagField, setTagField] = React.useState("");
 
-  const [tagField, setTagField] = React.useState("")
-
-  const handleClose = () => setOpen(false)
+  const handleClose = () => setOpen(false);
   const handleUpdate = () => {
     setTagSate({ tag: tagField, entries: [] });
     handleClose();
-  }
+  };
 
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Tally Something New</DialogTitle>
-      <DialogContent sx={{
-        rowGap: 2,
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+      <DialogContent
+        sx={{
+          rowGap: 2,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <TextField
           sx={{ marginTop: 2 }}
           id="newTagField"
@@ -211,25 +212,25 @@ function NewThingDialog(
         <Button onClick={handleUpdate}>Create</Button>
       </DialogActions>
     </Dialog>
-  )
+  );
 }
 
-function UserLoginMenu(
-  { logginState,
-    setLoggedIn,
-    userName,
-    storeDispatch,
-    authService
-  }: {
-    logginState: LogginState;
-    setLoggedIn: (a: LogginState) => void;
-    userName: string;
-    storeDispatch: Dispatch<StoreAction>;
-    authService: GoogleAPIAuthenticator;
-  }
-) {
-
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
+function UserLoginMenu({
+  logginState,
+  setLoggedIn,
+  userName,
+  storeDispatch,
+  authService,
+}: {
+  logginState: LogginState;
+  setLoggedIn: (a: LogginState) => void;
+  userName: string;
+  storeDispatch: Dispatch<StoreAction>;
+  authService: GoogleAPIAuthenticator;
+}) {
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
+    null
+  );
   const isMenuOpen = Boolean(menuAnchorEl);
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setMenuAnchorEl(event.currentTarget);
@@ -242,45 +243,43 @@ function UserLoginMenu(
   const pickerCallback = (documents: any[]) => {
     storeDispatch({
       type: "AddFiles",
-      files: documents.map((v: any) => ({ id: v.id, name: v.name }))
-    })
-  }
+      files: documents.map((v: any) => ({ id: v.id, name: v.name })),
+    });
+  };
 
   const handleLoggout = () => {
     handleCloseMenu();
     authService.logout();
-  }
+  };
 
   const handleGrantFiles = () => {
     handleCloseMenu();
     if (authService !== null) {
       showGoogleDrivePicker(authService, pickerCallback);
     }
-  }
+  };
 
   const handleRevokeAccess = () => {
     handleCloseMenu();
     authService.revokeAccess();
-  }
+  };
 
   const handleLogin = () => {
     handleCloseMenu();
-    setLoggedIn("Loading")
+    setLoggedIn("Loading");
     authService.login().catch(() => {
       setLoggedIn("Failure");
     });
-  }
+  };
 
   const handleOpenLog = () => {
     handleCloseMenu();
-    setLoggerOpen(true)
-  }
+    setLoggerOpen(true);
+  };
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <div>
-        {userName}
-      </div>
+    <Box sx={{ display: "flex", alignItems: "center" }}>
+      <div>{userName}</div>
 
       <IconButton
         size="large"
@@ -296,9 +295,9 @@ function UserLoginMenu(
         open={isMenuOpen}
         onClose={handleCloseMenu}
       >
-        {
-          logginState === true ?
-            [<MenuItem key="logout" onClick={handleLoggout}>
+        {logginState === true ? (
+          [
+            <MenuItem key="logout" onClick={handleLoggout}>
               <ListItemIcon>
                 <LogoutIcon fontSize="small" />
               </ListItemIcon>
@@ -310,17 +309,18 @@ function UserLoginMenu(
                 <AddToDriveIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText inset>Grant Files</ListItemText>
-            </MenuItem>
-            ] :
-            logginState === false ?
-              <MenuItem onClick={handleLogin}>
-                <ListItemIcon>
-                  <LoginIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText inset>Login</ListItemText>
-              </MenuItem>
-              : []
-        }
+            </MenuItem>,
+          ]
+        ) : logginState === false ? (
+          <MenuItem onClick={handleLogin}>
+            <ListItemIcon>
+              <LoginIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText inset>Login</ListItemText>
+          </MenuItem>
+        ) : (
+          []
+        )}
         <Divider />
         <MenuItem key="revoke" onClick={handleRevokeAccess}>
           <ListItemIcon>
@@ -337,5 +337,5 @@ function UserLoginMenu(
       </Menu>
       <LoggerDialog open={loggerOpen} setOpen={setLoggerOpen} />
     </Box>
-  )
+  );
 }

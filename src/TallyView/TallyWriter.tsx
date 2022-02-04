@@ -4,7 +4,8 @@ import { Dispatch } from 'react';
 import { NumericTextField, NumericFieldOutput } from '../BasicComponents/NumericTextField'
 import {
   Box,
-  Button
+  Button,
+  Paper
 } from '@mui/material';
 import { MsgAlert } from '../BasicComponents/MsgAlert';
 import { sum } from '../util';
@@ -59,37 +60,39 @@ function TallyWriter(
   const prefabClicks = organiseTallyButtons(tallyButtons);
 
   return (
-    <Box sx={{
-      display: 'grid',
-      gridTemplate: "'t0 t1 t2 t3' 't4 t5 t6 t7' 'txt txt txt tAny'",
-      gridGap: 7,
-      marginBottom: 2
-    }}>
-      {prefabClicks.map((n, i) =>
+    <Paper elevation={6} sx={{ padding: 1 }}>
+      <Box sx={{
+        display: 'grid',
+        gridTemplate: "'t0 t1 t2 t3' 't4 t5 t6 t7' 'txt txt txt tAny'",
+        gridGap: 7,
+        marginBottom: 2
+      }}>
+        {prefabClicks.map((n, i) =>
+          <Button
+            key={`Tally${n}`}
+            sx={{ gridArea: `t${i}` }}
+            variant="outlined"
+            onClick={tallyClick(n)}
+          >
+            {`Tally ${n}`}
+          </Button>
+        )}
+        <NumericTextField
+          id="count_by_numbers"
+          label="Tally a custom amount"
+          onChange={setNum}
+          sx={{ gridArea: 'txt' }}
+        />
         <Button
-          key={`Tally${n}`}
-          sx={{ gridArea: `t${i}` }}
+          sx={{ gridArea: 'tAny' }}
           variant="outlined"
-          onClick={tallyClick(n)}
+          onClick={tallyClick(0)}
         >
-          {`Tally ${n}`}
+          Tally
         </Button>
-      )}
-      <NumericTextField
-        id="count_by_numbers"
-        label="Tally a custom amount"
-        onChange={setNum}
-        sx={{ gridArea: 'txt' }}
-      />
-      <Button
-        sx={{ gridArea: 'tAny' }}
-        variant="outlined"
-        onClick={tallyClick(0)}
-      >
-        Tally
-      </Button>
-      <MsgAlert state={alertDialogState} setState={setAlertDialogState} />
-    </Box>
+        <MsgAlert state={alertDialogState} setState={setAlertDialogState} />
+      </Box>
+    </Paper>
   )
 }
 

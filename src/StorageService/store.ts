@@ -1,15 +1,21 @@
 import { compareDesc } from "date-fns";
 
-export type { StoreEntry, Entry, StoreCashe, FileStoreCashe }
-export { MapStoreCashe, EmptyFileStore, equalEntry, equalStoreEntry, compareEntryTimeDesc }
+export type { StoreEntry, Entry, StoreCashe, FileStoreCashe };
+export {
+  MapStoreCashe,
+  EmptyFileStore,
+  equalEntry,
+  equalStoreEntry,
+  compareEntryTimeDesc,
+};
 
 interface Entry {
-  count: number,
-  date: Date
+  count: number;
+  date: Date;
 }
 
 interface StoreEntry extends Entry {
-  tag: string
+  tag: string;
 }
 
 interface StoreCashe {
@@ -27,7 +33,7 @@ interface StoreCashe {
 
 interface FileStoreCashe extends StoreCashe {
   // If there's file metadata stored elsewhere, enter it into the store
-  addFiles(files: ({ name: string, id: string })[]): void;
+  addFiles(files: { name: string; id: string }[]): void;
 
   // Asyncronous Function calls that can check a server for data if
   // it's not cashed in the StoreCashe
@@ -36,7 +42,7 @@ interface FileStoreCashe extends StoreCashe {
 }
 
 class MapStoreCashe implements StoreCashe {
-  private store: Map<string, Entry[]>
+  private store: Map<string, Entry[]>;
 
   constructor() {
     this.store = new Map();
@@ -45,7 +51,9 @@ class MapStoreCashe implements StoreCashe {
   read(): StoreEntry[] {
     let retEntries: StoreEntry[] = [];
     this.store.forEach((tagEntries, tag) =>
-      tagEntries.forEach(({ count, date }) => retEntries.push({ tag, date, count }))
+      tagEntries.forEach(({ count, date }) =>
+        retEntries.push({ tag, date, count })
+      )
     );
     return retEntries;
   }
@@ -65,7 +73,7 @@ class MapStoreCashe implements StoreCashe {
     if (mTag != null) {
       this.store.set(
         tag,
-        mTag.filter(v => !equalEntry(v, { date, count }))
+        mTag.filter((v) => !equalEntry(v, { date, count }))
       );
     }
   }
@@ -80,13 +88,12 @@ class MapStoreCashe implements StoreCashe {
   }
 
   entriesByTag(tag: string): Entry[] {
-    return this.store.get(tag) || []
+    return this.store.get(tag) || [];
   }
 
   clear() {
     this.store = new Map();
   }
-
 }
 
 function equalEntry(a: Entry, b: Entry): boolean {
@@ -94,12 +101,17 @@ function equalEntry(a: Entry, b: Entry): boolean {
 }
 
 function equalStoreEntry(a: StoreEntry, b: StoreEntry): boolean {
-  return a.tag === b.tag &&
+  return (
+    a.tag === b.tag &&
     a.count === b.count &&
-    a.date.getTime() === b.date.getTime();
+    a.date.getTime() === b.date.getTime()
+  );
 }
 
-function compareEntryTimeDesc(a: Entry | StoreEntry, b: Entry | StoreEntry): number {
+function compareEntryTimeDesc(
+  a: Entry | StoreEntry,
+  b: Entry | StoreEntry
+): number {
   return compareDesc(a.date, b.date);
 }
 
@@ -110,14 +122,18 @@ class EmptyFileStore implements FileStoreCashe {
   requestBytag(tag: string): Promise<Entry[]> {
     return Promise.resolve([]);
   }
-  read(): StoreEntry[] { return []; }
-  getTags(): string[] { return []; }
-  entriesByTag(tag: string): Entry[] { return []; }
-  addFiles(files: { name: string; id: string; }[]): void { }
-  write(entry: StoreEntry): void { }
-  delete(entry: StoreEntry): void { }
-  update(oldEntry: StoreEntry, newEntry: StoreEntry): void { }
-  clear(): void { }
-
-
+  read(): StoreEntry[] {
+    return [];
+  }
+  getTags(): string[] {
+    return [];
+  }
+  entriesByTag(tag: string): Entry[] {
+    return [];
+  }
+  addFiles(files: { name: string; id: string }[]): void {}
+  write(entry: StoreEntry): void {}
+  delete(entry: StoreEntry): void {}
+  update(oldEntry: StoreEntry, newEntry: StoreEntry): void {}
+  clear(): void {}
 }

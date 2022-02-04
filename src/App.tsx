@@ -1,29 +1,26 @@
+import * as React from "react";
+import { Dispatch } from "react";
 
-import * as React from 'react';
-import { Dispatch } from 'react';
+import "./App.css";
+import { TopAppBar } from "./TopAppBar";
+import { TallyView } from "./TallyView/TallyView";
 
-import './App.css';
-import { TopAppBar } from './TopAppBar'
-import { TallyView } from './TallyView/TallyView'
-
+import { Box } from "@mui/material";
 import {
-  Box
-} from '@mui/material';
-import { 
   PersonSearch as PersonSearchIcon,
-  CallMade as CallMadeIcon 
-} from '@mui/icons-material';
+  CallMade as CallMadeIcon,
+} from "@mui/icons-material";
 import {
   getGoogleAPIAuthenticator,
-  GoogleAPIAuthenticator
-} from './StorageService/GoogleDrive/gdrive-login'
-import { EmptyFileStore, Entry, FileStoreCashe } from './StorageService/store';
-import { implStoreWriter, StoreAction } from './StorageService/store-reducer';
-import { GoogleFilesCashe } from './StorageService/GoogleDrive/gdrive-cashe';
-import { GoogleFileManager } from './StorageService/GoogleDrive/gdrive-file';
+  GoogleAPIAuthenticator,
+} from "./StorageService/GoogleDrive/gdrive-login";
+import { EmptyFileStore, Entry, FileStoreCashe } from "./StorageService/store";
+import { implStoreWriter, StoreAction } from "./StorageService/store-reducer";
+import { GoogleFilesCashe } from "./StorageService/GoogleDrive/gdrive-cashe";
+import { GoogleFileManager } from "./StorageService/GoogleDrive/gdrive-file";
 
-export type { TagState, TagStateEntries, LogginState }
-export { App }
+export type { TagState, TagStateEntries, LogginState };
+export { App };
 
 type LogginState = "Loading" | "Failure" | boolean;
 
@@ -40,50 +37,49 @@ function storeReducer(
   { store }: { store: FileStoreCashe },
   action: StoreAction
 ): { store: FileStoreCashe } {
-  return ({ store: implStoreWriter(store, action) });
+  return { store: implStoreWriter(store, action) };
 }
 
 function App(): JSX.Element {
-
-  const [storeWrapper, storeDispatch] = React.useReducer(
-    storeReducer,
-    { store: new EmptyFileStore() }
-  );
+  const [storeWrapper, storeDispatch] = React.useReducer(storeReducer, {
+    store: new EmptyFileStore(),
+  });
 
   const [logginState, setLogginState] = React.useState<LogginState>(false);
   const [auth, setAuth] = React.useState<null | GoogleAPIAuthenticator>(null);
 
   React.useEffect(() => {
     console.log("Initializing Authenticator via React Effect");
-    getGoogleAPIAuthenticator(setLogginState).then(authy => {
+    getGoogleAPIAuthenticator(setLogginState).then((authy) => {
       setAuth(authy);
       storeDispatch({
         type: "NewStore",
-        store: new GoogleFilesCashe(
-          new GoogleFileManager(authy)
-        )
+        store: new GoogleFilesCashe(new GoogleFileManager(authy)),
       });
     });
   }, []);
 
-  // Get the userName if we're logged in and there's an auth object 
-  const userName = logginState === true ? auth?.getUserName() || "" : ""
+  // Get the userName if we're logged in and there's an auth object
+  const userName = logginState === true ? auth?.getUserName() || "" : "";
 
-  const [tagState, setTagState] = useLoadingTagEntries(storeWrapper, logginState === true);
+  const [tagState, setTagState] = useLoadingTagEntries(
+    storeWrapper,
+    logginState === true
+  );
 
   React.useEffect(() => {
     if (logginState === false) {
       setTagState({ tag: null, entries: "Loading" });
       storeDispatch({ type: "Clear" });
     }
-  }, [logginState, setTagState])
+  }, [logginState, setTagState]);
 
-  const [tagList, setTagList] = React.useState<"Loading" | string[]>("Loading")
+  const [tagList, setTagList] = React.useState<"Loading" | string[]>("Loading");
   React.useEffect(() => {
     if (logginState === true) {
       storeWrapper.store.requestTags().then(setTagList);
     }
-  }, [storeWrapper, logginState])
+  }, [storeWrapper, logginState]);
 
   return (
     <div className="App">
@@ -106,75 +102,78 @@ function App(): JSX.Element {
   );
 }
 
-function OpeningMessage(
-  { auth, logginState, tagState, storeDispatch }:
-    {
-      auth: null | GoogleAPIAuthenticator;
-      logginState: LogginState;
-      tagState: TagState;
-      storeDispatch: React.Dispatch<StoreAction>;
-    }
-): JSX.Element {
-
+function OpeningMessage({
+  auth,
+  logginState,
+  tagState,
+  storeDispatch,
+}: {
+  auth: null | GoogleAPIAuthenticator;
+  logginState: LogginState;
+  tagState: TagState;
+  storeDispatch: React.Dispatch<StoreAction>;
+}): JSX.Element {
   if (auth === null) {
-
-    return <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <h4><PersonSearchIcon /> Loading Third Party Google Client...</h4>
-    </Box>;
-
-  } else if (logginState === false) {
-
-    return <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <h4>Login to Begin! <CallMadeIcon /></h4>
-    </Box>;
-
-  } else if (logginState === "Loading") {
-
-    return <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <h4>Logging In...</h4>
-    </Box>;
-
-  } else if (logginState === "Failure") {
-
-    return <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <h4>Loggin Failed</h4>
-      <pre>Perhaps refresh the page, then try again</pre>
-    </Box>;
-
-  } else {
-
-    return tagState.tag === null ?
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
         <h4>
-          <CallMadeIcon sx={{ transform: 'rotate(270deg)' }} />
+          <PersonSearchIcon /> Loading Third Party Google Client...
+        </h4>
+      </Box>
+    );
+  } else if (logginState === false) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+        <h4>
+          Login to Begin! <CallMadeIcon />
+        </h4>
+      </Box>
+    );
+  } else if (logginState === "Loading") {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+        <h4>Logging In...</h4>
+      </Box>
+    );
+  } else if (logginState === "Failure") {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+        <h4>Loggin Failed</h4>
+        <pre>Perhaps refresh the page, then try again</pre>
+      </Box>
+    );
+  } else {
+    return tagState.tag === null ? (
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+        <h4>
+          <CallMadeIcon sx={{ transform: "rotate(270deg)" }} />
           Select A Thing To Tally
         </h4>
       </Box>
-      :
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+    ) : (
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
         <TallyView
           tag={tagState.tag}
           entries={tagState.entries}
           storeDispatch={storeDispatch}
         />
-      </Box>;
+      </Box>
+    );
   }
-
 }
 
 function useLoadingTagEntries(
   storeWrapper: { store: FileStoreCashe },
   isLoggedIn: boolean
 ): [TagState, Dispatch<React.SetStateAction<TagState>>] {
-
   const [tagState, setTagState] = React.useState({
     tag: null,
-    entries: "Loading"
+    entries: "Loading",
   } as TagState);
 
   // If the store has updated in any way, reload entries
   React.useEffect(
-    () => setTagState(st => ({ tag: st.tag, entries: "Loading" })),
+    () => setTagState((st) => ({ tag: st.tag, entries: "Loading" })),
     [storeWrapper]
   );
 
@@ -188,8 +187,8 @@ function useLoadingTagEntries(
       storeWrapper.store.requestBytag(tagState.tag).then((entries: Entry[]) => {
         setTagState({
           tag: tagState.tag,
-          entries
-        })
+          entries,
+        });
       });
     }
   }, [isLoggedIn, tagState, storeWrapper]);
@@ -199,14 +198,14 @@ function useLoadingTagEntries(
     if (isLoggedIn && tagState.tag === null) {
       const cookieTag = getCookie("tag");
       if (cookieTag.length > 0) {
-        storeWrapper.store.requestTags().then(tags => {
+        storeWrapper.store.requestTags().then((tags) => {
           if (tags.includes(cookieTag)) {
             setTagState({
               tag: cookieTag,
-              entries: "Loading"
+              entries: "Loading",
             });
           }
-        })
+        });
       }
     } else if (isLoggedIn && tagState.tag != null) {
       setCookie("tag", tagState.tag);
@@ -224,10 +223,10 @@ function setCookie(key: string, value: string) {
 
 function getCookie(key: string): string {
   let name = key + "=";
-  let ca = document.cookie.split(';');
+  let ca = document.cookie.split(";");
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i];
-    while (c.charAt(0) === ' ') {
+    while (c.charAt(0) === " ") {
       c = c.substring(1);
     }
     if (c.indexOf(name) === 0) {

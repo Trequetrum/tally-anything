@@ -1,13 +1,11 @@
+import { Entry } from "./StorageService/store";
 
-import { Entry } from './StorageService/store'
-
-export function shallowEqual(a:any, b:any){
-  return a === b || (
-    Object.keys(a).length === Object.keys(b).length &&
-    Object.keys(a).every(key => 
-      b.hasOwnProperty(key) && a[key] === b[key]
-    )
-  )
+export function shallowEqual(a: any, b: any) {
+  return (
+    a === b ||
+    (Object.keys(a).length === Object.keys(b).length &&
+      Object.keys(a).every((key) => b.hasOwnProperty(key) && a[key] === b[key]))
+  );
 }
 
 export function dateString(date: Date): string {
@@ -17,11 +15,15 @@ export function dateString(date: Date): string {
     month: "numeric",
     hour: "numeric",
     minute: "numeric",
-    second: "numeric"
+    second: "numeric",
   }).format(date);
 }
 
-export function descendingComparator<T>(a: T, b: T, orderBy: keyof T): 1 | -1 | 0 {
+export function descendingComparator<T>(
+  a: T,
+  b: T,
+  orderBy: keyof T
+): 1 | -1 | 0 {
   if (b[orderBy] < a[orderBy]) {
     return -1;
   }
@@ -32,13 +34,13 @@ export function descendingComparator<T>(a: T, b: T, orderBy: keyof T): 1 | -1 | 
 }
 
 export function getComparator<Key extends keyof any>(
-  order: 'asc' | 'desc',
-  orderBy: Key,
+  order: "asc" | "desc",
+  orderBy: Key
 ): (
-    a: { [key in Key]: number | string | Date },
-    b: { [key in Key]: number | string | Date },
-  ) => number {
-  return order === 'desc'
+  a: { [key in Key]: number | string | Date },
+  b: { [key in Key]: number | string | Date }
+) => number {
+  return order === "desc"
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => descendingComparator(b, a, orderBy);
 }
@@ -48,27 +50,22 @@ export function sum(list: Array<number>): number {
 }
 
 export function tallyRound(a: number): number {
-  return Math.round(a * 10) / 10
+  return Math.round(a * 10) / 10;
 }
 
 export function mergeDays(a: Entry[]): Entry[] {
-
   const mapo = new Map<number, number>();
 
-  for (let {date, count} of a) {
+  for (let { date, count } of a) {
     const dayMs = new Date(
-      date.getFullYear(), 
-      date.getMonth(), 
+      date.getFullYear(),
+      date.getMonth(),
       date.getDate()
     ).getTime();
 
     const prev = mapo.get(dayMs) || 0;
     mapo.set(dayMs, prev + count);
-
   }
-  
-  return Array.from(
-    mapo, 
-    ([date, count]) => ({ date: new Date(date), count })
-  );
+
+  return Array.from(mapo, ([date, count]) => ({ date: new Date(date), count }));
 }

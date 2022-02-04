@@ -28,7 +28,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  TextField
+  TextField,
+  tableCellClasses
 } from '@mui/material';
 import {
   getComparator,
@@ -98,11 +99,16 @@ function EntriesTable(
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Paper sx={{ width: '100%', mb: 2 }}>
+      <Paper elevation={6} sx={{ width: '100%', mb: 2 }}>
         <TableContainer>
           <Table
             aria-labelledby="tableTitle"
             size="small"
+            sx={{
+              [`& .${tableCellClasses.root}`]: {
+                borderBottom: "none"
+              }
+            }}
           >
             <TableHead>
               <TableRow>
