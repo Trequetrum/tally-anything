@@ -29,6 +29,7 @@ function TallyWriter(
   });
 
   const [num, setNum] = React.useState<NumericFieldOutput>("Empty");
+  const disableTallyButton = typeof num === "string";
 
   const tallyClick = (count: number) => () => {
 
@@ -60,10 +61,10 @@ function TallyWriter(
   const prefabClicks = organiseTallyButtons(tallyButtons);
 
   return (
-    <Paper elevation={6} sx={{ padding: 1 }}>
+    <Paper elevation={6} sx={{ padding: 1, mx: 1 }}>
       <Box sx={{
         display: 'grid',
-        gridTemplate: "'t0 t1 t2 t3' 't4 t5 t6 t7' 'txt txt txt tAny'",
+        gridTemplate: "'txt txt txt tAny' 't0 t1 t2 t3' 't4 t5 t6 t7'",
         gridGap: 7
       }}>
         {prefabClicks.map((n, i) =>
@@ -73,7 +74,7 @@ function TallyWriter(
             variant="outlined"
             onClick={tallyClick(n)}
           >
-            {`Tally ${n}`}
+            {n}
           </Button>
         )}
         <NumericTextField
@@ -86,6 +87,7 @@ function TallyWriter(
           sx={{ gridArea: 'tAny' }}
           variant="outlined"
           onClick={tallyClick(0)}
+          disabled={disableTallyButton}
         >
           Tally
         </Button>

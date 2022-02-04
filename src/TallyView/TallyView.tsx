@@ -38,7 +38,7 @@ function TallyView({
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <Typography variant="h3" sx={{ marginTop: 4 }}>
-        {tag}
+        <strong style={{ fontWeight: 550 }}>{tag}</strong>
       </Typography>
       {entriesLoading ? (
         <h4 style={entriesLoading ? {} : { display: "none" }}>
@@ -55,6 +55,7 @@ function TallyView({
         sx={{
           display: !entriesLoading && entries.length > 0 ? "flex" : "none",
           flexDirection: "column",
+          marginBottom: 4,
           gap: 4,
         }}
       >
