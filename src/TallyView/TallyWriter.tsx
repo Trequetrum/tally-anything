@@ -64,8 +64,7 @@ function TallyWriter(
       <Box sx={{
         display: 'grid',
         gridTemplate: "'t0 t1 t2 t3' 't4 t5 t6 t7' 'txt txt txt tAny'",
-        gridGap: 7,
-        marginBottom: 2
+        gridGap: 7
       }}>
         {prefabClicks.map((n, i) =>
           <Button

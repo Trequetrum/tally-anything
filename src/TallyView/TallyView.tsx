@@ -1,7 +1,6 @@
 import { Dispatch } from "react";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import {
-  getHours,
   endOfDay,
   getDayOfYear,
   isThisMonth,
@@ -37,8 +36,10 @@ function TallyView({
   const tallyButtons = entriesLoading ? [] : decideWritterButtons(entries);
 
   return (
-    <div>
-      <h1>{tag}</h1>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <Typography variant="h3" sx={{ marginTop: 4 }}>
+        {tag}
+      </Typography>
       {entriesLoading ? (
         <h4 style={entriesLoading ? {} : { display: "none" }}>
           Loading Entries
@@ -52,18 +53,19 @@ function TallyView({
       )}
       <Box
         sx={{
-          display: !entriesLoading && entries.length > 0 ? "block" : "none",
+          display: !entriesLoading && entries.length > 0 ? "flex" : "none",
+          flexDirection: "column",
+          gap: 4,
         }}
       >
-        <SummaryTable key="st" dispList={dispList} />
+        <SummaryTable dispList={dispList} />
         <EntriesTable
-          key="et"
           tag={tag}
           entries={entriesLoading ? [] : entries}
           storeDispatch={storeDispatch}
         />
       </Box>
-    </div>
+    </Box>
   );
 }
 
@@ -103,7 +105,7 @@ function summary(entries: Entry[]): {
 
   const todayTotal = today[0]?.count || 0;
   dispList.push({
-    label: "Today:",
+    label: "Today",
     avg: todayTotal,
     total: todayTotal,
   });
@@ -130,7 +132,7 @@ function summary(entries: Entry[]): {
       .map((v) => v.count)
   );
   dispList.push({
-    label: "This Week:",
+    label: "This Week",
     avg: totalThisWeek / dayOfTheWeek,
     total: totalThisWeek,
   });
@@ -140,7 +142,7 @@ function summary(entries: Entry[]): {
     last30Days.filter((v) => isThisMonth(v.date)).map((v) => v.count)
   );
   dispList.push({
-    label: "This Month:",
+    label: "This Month",
     avg: totalThisMonth / dayOfTheMonth,
     total: totalThisMonth,
   });
@@ -148,7 +150,7 @@ function summary(entries: Entry[]): {
   const dayOfTheYear = getDayOfYear(currentDate);
   const totalThisYear = sum(thisYear.map((v) => v.count));
   dispList.push({
-    label: "This Year:",
+    label: "This Year",
     avg: totalThisYear / dayOfTheYear,
     total: totalThisYear,
   });
