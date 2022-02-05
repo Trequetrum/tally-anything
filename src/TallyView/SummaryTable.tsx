@@ -29,7 +29,7 @@ function SummaryTable({ entries }: { entries: Entry[] }) {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <Paper elevation={1} sx={{ mx: 1 }}>
+      <Paper elevation={0} sx={{ mx: 1 }}>
         <Table
           size="small"
           aria-label="a dense table"

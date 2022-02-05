@@ -99,7 +99,7 @@ function EntriesTable(
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Paper elevation={1} sx={{ mx: 1}}>
+      <Paper elevation={0} sx={{ mx: 1}}>
         <TableContainer>
           <Table
             aria-labelledby="tableTitle"
@@ -203,15 +203,15 @@ function EditEntryDialog(
   const handleUpdate = () => {
     if (open) {
 
-      const newEntry = {
+      const newEntry: StoreEntry = {
         tag: state.tag,
         count: typeof num == 'number' ?
           num :
           state.count,
         date: dateTimeValue != null ?
-          dateTimeValue.getTime() :
+          dateTimeValue :
           state.date
-      } as StoreEntry
+      }
 
       if (!shallowEqual(state, newEntry)) {
         storeDispatch({

@@ -24,8 +24,8 @@ function TallyView({
   const tallyButtons = entriesLoading ? [] : decideWritterButtons(entries);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <Typography variant="h3" sx={{ marginTop: 3 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <Typography variant="h3" sx={{ marginTop: 4 }}>
         <strong style={{ fontWeight: 550 }}>{tag}</strong>
       </Typography>
       {entriesLoading ? (
@@ -44,7 +44,7 @@ function TallyView({
           display: !entriesLoading && entries.length > 0 ? "flex" : "none",
           flexDirection: "column",
           marginBottom: 2,
-          gap: 2,
+          gap: 4,
         }}
       >
         <SummaryTable entries={entriesLoading ? [] : entries} />
