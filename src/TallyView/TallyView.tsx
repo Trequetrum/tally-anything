@@ -1,5 +1,5 @@
 import { Dispatch } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 
 import { compareEntryTimeDesc, Entry } from "../StorageService/store";
 import { EntriesTable } from "./EntriesTable";
@@ -24,8 +24,8 @@ function TallyView({
   const tallyButtons = entriesLoading ? [] : decideWritterButtons(entries);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <Typography variant="h3" sx={{ marginTop: 3 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Typography variant="h3" sx={{ marginTop: 4 }}>
         <strong style={{ fontWeight: 550 }}>{tag}</strong>
       </Typography>
       {entriesLoading ? (
@@ -33,26 +33,32 @@ function TallyView({
           Loading Entries
         </h4>
       ) : (
-        <TallyWriter
-          tag={tag}
-          tallyButtons={tallyButtons}
-          storeDispatch={storeDispatch}
-        />
+        <Paper elevation={1} sx={{ padding: 1, mx: 1 }}>
+          <TallyWriter
+            tag={tag}
+            tallyButtons={tallyButtons}
+            storeDispatch={storeDispatch}
+          />
+        </Paper>
       )}
       <Box
         sx={{
           display: !entriesLoading && entries.length > 0 ? "flex" : "none",
           flexDirection: "column",
           marginBottom: 2,
-          gap: 2,
+          gap: 3,
         }}
       >
-        <SummaryTable entries={entriesLoading ? [] : entries} />
-        <EntriesTable
-          tag={tag}
-          entries={entriesLoading ? [] : entries}
-          storeDispatch={storeDispatch}
-        />
+        <Paper elevation={1} sx={{ mx: 1 }}>
+          <SummaryTable entries={entriesLoading ? [] : entries} />
+        </Paper>
+        <Paper elevation={1} sx={{ mx: 1}}>
+          <EntriesTable
+            tag={tag}
+            entries={entriesLoading ? [] : entries}
+            storeDispatch={storeDispatch}
+          />
+        </Paper>
       </Box>
     </Box>
   );

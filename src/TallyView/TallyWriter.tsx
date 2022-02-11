@@ -61,39 +61,37 @@ function TallyWriter(
   const prefabClicks = organiseTallyButtons(tallyButtons);
 
   return (
-    <Paper elevation={1} sx={{ padding: 1, mx: 1 }}>
-      <Box sx={{
-        display: 'grid',
-        gridTemplate: "'txt txt txt tAny' 't0 t1 t2 t3' 't4 t5 t6 t7'",
-        gridGap: 7
-      }}>
-        {prefabClicks.map((n, i) =>
-          <Button
-            key={`Tally${n}`}
-            sx={{ gridArea: `t${i}` }}
-            variant="outlined"
-            onClick={tallyClick(n)}
-          >
-            {n}
-          </Button>
-        )}
-        <NumericTextField
-          id="count_by_numbers"
-          label="Tally a custom amount"
-          onChange={setNum}
-          sx={{ gridArea: 'txt' }}
-        />
+    <Box sx={{
+      display: 'grid',
+      gridTemplate: "'txt txt txt tAny' 't0 t1 t2 t3' 't4 t5 t6 t7'",
+      gridGap: 7
+    }}>
+      {prefabClicks.map((n, i) =>
         <Button
-          sx={{ gridArea: 'tAny' }}
+          key={`Tally${n}`}
+          sx={{ gridArea: `t${i}` }}
           variant="outlined"
-          onClick={tallyClick(0)}
-          disabled={disableTallyButton}
+          onClick={tallyClick(n)}
         >
-          Tally
+          {n}
         </Button>
-        <MsgAlert state={alertDialogState} setState={setAlertDialogState} />
-      </Box>
-    </Paper>
+      )}
+      <NumericTextField
+        id="count_by_numbers"
+        label="Tally a custom amount"
+        onChange={setNum}
+        sx={{ gridArea: 'txt' }}
+      />
+      <Button
+        sx={{ gridArea: 'tAny' }}
+        variant="outlined"
+        onClick={tallyClick(0)}
+        disabled={disableTallyButton}
+      >
+        Tally
+      </Button>
+      <MsgAlert state={alertDialogState} setState={setAlertDialogState} />
+    </Box>
   )
 }
 

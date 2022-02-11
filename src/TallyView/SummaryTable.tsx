@@ -25,46 +25,43 @@ import { Entry } from "../StorageService/store";
 export { SummaryTable };
 
 function SummaryTable({ entries }: { entries: Entry[] }) {
+  
   const dispList = summary(entries);
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Paper elevation={1} sx={{ mx: 1 }}>
-        <Table
-          size="small"
-          aria-label="a dense table"
-          sx={{
-            [`& .${tableCellClasses.root}`]: {
-              borderBottom: "none",
-            },
-          }}
-        >
-          <TableHead>
-            <TableRow>
-              <TableCell></TableCell>
-              <TableCell align="right">Avg/Day</TableCell>
-              <TableCell align="right">Total</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {dispList.map((v) => (
-              <TableRow
-                key={v.label}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  <em>{v.label}</em>
-                </TableCell>
-                <TableCell align="right">
-                  {v.avg !== v.total ? tallyRound(v.avg) : ""}
-                </TableCell>
-                <TableCell align="right">{tallyRound(v.total)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
-    </Box>
+    <Table
+      size="small"
+      aria-label="a dense table"
+      sx={{
+        [`& .${tableCellClasses.root}`]: {
+          borderBottom: "none",
+        },
+      }}
+    >
+      <TableHead>
+        <TableRow>
+          <TableCell></TableCell>
+          <TableCell align="right">Avg/Day</TableCell>
+          <TableCell align="right">Total</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {dispList.map((v) => (
+          <TableRow
+            key={v.label}
+            sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+          >
+            <TableCell component="th" scope="row">
+              <em>{v.label}</em>
+            </TableCell>
+            <TableCell align="right">
+              {v.avg !== v.total ? tallyRound(v.avg) : ""}
+            </TableCell>
+            <TableCell align="right">{tallyRound(v.total)}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 

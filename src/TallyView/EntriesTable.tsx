@@ -96,87 +96,90 @@ function EntriesTable(
         label: 'Count'
       }
     ];
-
+//sx={{ width: '100%' }}
   return (
-    <Box sx={{ width: '100%' }}>
-      <Paper elevation={1} sx={{ mx: 1}}>
-        <TableContainer>
-          <Table
-            aria-labelledby="tableTitle"
-            size="small"
-            sx={{
-              [`& .${tableCellClasses.root}`]: {
-                borderBottom: "none"
-              }
-            }}
-          >
-            <TableHead>
-              <TableRow>
-                {headCells.map((headCell) => (
-                  <TableCell
-                    key={headCell.id}
-                    align={headCell.numeric ? 'right' : 'left'}
-                    sortDirection={orderBy === headCell.id ? order : false}
-                  >
-                    <TableSortLabel
-                      active={orderBy === headCell.id}
-                      direction={orderBy === headCell.id ? order : 'asc'}
-                      onClick={handleRequestSort(headCell.id)}
-                    >
-                      {headCell.label}
-                      {orderBy === headCell.id ? (
-                        <Box component="span" sx={visuallyHidden}>
-                          {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                        </Box>
-                      ) : null}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-                <TableCell padding="normal"></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.slice().sort(getComparator(order, orderBy))
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map(entry => (
-                  <TableRow tabIndex={-1} key={`${entry.count}:${entry.date}`}>
-                    <TableCell component="th" scope="row">
-                      {dateString(entry.date)}
-                    </TableCell>
-                    <TableCell align="right">{entry.count}</TableCell>
-                    <TableCell align="center">
-                      <Button onClick={() => setEditDialogState({
-                        tag,
-                        ...entry
-                      })}>
-                        Edit
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              }
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 33 * emptyRows,
-                  }}
+    <Box>
+      <TableContainer>
+        <Table
+          aria-labelledby="tableTitle"
+          size="small"
+          sx={{
+            [`& .${tableCellClasses.root}`]: {
+              borderBottom: "none"
+            }
+          }}
+        >
+          <TableHead>
+            <TableRow>
+              {headCells.map((headCell) => (
+                <TableCell
+                  key={headCell.id}
+                  align={headCell.numeric ? 'right' : 'left'}
+                  sortDirection={orderBy === headCell.id ? order : false}
                 >
-                  <TableCell colSpan={3} />
+                  <TableSortLabel
+                    active={orderBy === headCell.id}
+                    direction={orderBy === headCell.id ? order : 'asc'}
+                    onClick={handleRequestSort(headCell.id)}
+                  >
+                    {headCell.label}
+                    {orderBy === headCell.id ? (
+                      <Box component="span" sx={visuallyHidden}>
+                        {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                      </Box>
+                    ) : null}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
+              <TableCell padding="normal"></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {rows.slice().sort(getComparator(order, orderBy))
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map(entry => (
+                <TableRow 
+                  tabIndex={-1} 
+                  key={
+                    `${tag}:${entry.count}:${entry.date.getTime()}`
+                  }
+                >
+                  <TableCell component="th" scope="row">
+                    {dateString(entry.date)}
+                  </TableCell>
+                  <TableCell align="right">{entry.count}</TableCell>
+                  <TableCell align="center">
+                    <Button onClick={() => setEditDialogState({
+                      tag,
+                      ...entry
+                    })}>
+                      Edit
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+              ))
+            }
+            {emptyRows > 0 && (
+              <TableRow
+                style={{
+                  height: 33 * emptyRows,
+                }}
+              >
+                <TableCell colSpan={3} />
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={rows.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
       <EditEntryDialog
         storeDispatch={storeDispatch}
         state={editDialogState}
