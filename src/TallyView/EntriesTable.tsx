@@ -199,6 +199,11 @@ function EditEntryDialog({
   const open = state !== "Closed";
   const [num, setNum] = React.useState<NumericFieldOutput>("Empty");
   const [dateTimeValue, setDateTimeValue] = React.useState<Date | null>(null);
+
+  if (open && dateTimeValue === null) {
+    setDateTimeValue(state.date);
+  }
+
   const handleClose = () => setState("Closed");
 
   const handleUpdate = () => {
