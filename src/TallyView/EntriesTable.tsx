@@ -1,17 +1,11 @@
-import * as React from 'react';
-import { Dispatch } from 'react';
+import * as React from "react";
+import { Dispatch } from "react";
 
-import {
-  Entry,
-  StoreEntry
-} from '../StorageService/store'
-import { visuallyHidden } from '@mui/utils';
-import type { } from '@mui/lab/themeAugmentation';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import {
-  LocalizationProvider,
-  MobileDateTimePicker
-} from '@mui/lab';
+import { Entry, StoreEntry } from "../StorageService/store";
+import { visuallyHidden } from "@mui/utils";
+import type {} from "@mui/lab/themeAugmentation";
+import AdapterDateFns from "@mui/lab/AdapterDateFns";
+import { LocalizationProvider, MobileDateTimePicker } from "@mui/lab";
 import {
   Button,
   Box,
@@ -29,41 +23,39 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  tableCellClasses
-} from '@mui/material';
-import {
-  getComparator,
-  dateString,
-  shallowEqual
-} from '../util';
+  tableCellClasses,
+} from "@mui/material";
+import { getComparator, dateString, shallowEqual } from "../util";
 import {
   NumericFieldOutput,
-  NumericTextField
-} from '../BasicComponents/NumericTextField';
-import { StoreAction } from '../StorageService/store-reducer';
+  NumericTextField,
+} from "../BasicComponents/NumericTextField";
+import { StoreAction } from "../StorageService/store-reducer";
 
-export { EntriesTable }
+export { EntriesTable };
 
-function EntriesTable(
-  { tag, entries, storeDispatch }:
-    {
-      tag: string;
-      entries: Entry[];
-      storeDispatch: Dispatch<StoreAction>;
-    }
-) {
+function EntriesTable({
+  tag,
+  entries,
+  storeDispatch,
+}: {
+  tag: string;
+  entries: Entry[];
+  storeDispatch: Dispatch<StoreAction>;
+}) {
+  const rows = entries;
 
-  const rows = entries
-
-  const [order, setOrder] = React.useState<'asc' | 'desc'>('desc');
-  const [orderBy, setOrderBy] = React.useState<keyof Entry>('date');
+  const [order, setOrder] = React.useState<"asc" | "desc">("desc");
+  const [orderBy, setOrderBy] = React.useState<keyof Entry>("date");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [editDialogState, setEditDialogState] = React.useState<"Closed" | StoreEntry>("Closed");
+  const [editDialogState, setEditDialogState] = React.useState<
+    "Closed" | StoreEntry
+  >("Closed");
 
   const handleRequestSort = (property: keyof Entry) => () => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
@@ -71,32 +63,34 @@ function EntriesTable(
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = ({
+    target,
+  }: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(target.value, 10));
     setPage(0);
   };
 
   // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows = page > 0 ?
-    Math.max(0, (1 + page) * rowsPerPage - rows.length) :
-    0;
+  const emptyRows =
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-  const headCells: ({
-    id: keyof Entry
-    numeric: boolean
-    label: string
-  })[] = [
-      {
-        id: 'date',
-        numeric: false,
-        label: 'Date'
-      }, {
-        id: 'count',
-        numeric: true,
-        label: 'Count'
-      }
-    ];
-//sx={{ width: '100%' }}
+  const headCells: {
+    id: keyof Entry;
+    numeric: boolean;
+    label: string;
+  }[] = [
+    {
+      id: "date",
+      numeric: false,
+      label: "Date",
+    },
+    {
+      id: "count",
+      numeric: true,
+      label: "Count",
+    },
+  ];
+  //sx={{ width: '100%' }}
   return (
     <Box>
       <TableContainer>
@@ -105,8 +99,8 @@ function EntriesTable(
           size="small"
           sx={{
             [`& .${tableCellClasses.root}`]: {
-              borderBottom: "none"
-            }
+              borderBottom: "none",
+            },
           }}
         >
           <TableHead>
@@ -114,18 +108,20 @@ function EntriesTable(
               {headCells.map((headCell) => (
                 <TableCell
                   key={headCell.id}
-                  align={headCell.numeric ? 'right' : 'left'}
+                  align={headCell.numeric ? "right" : "left"}
                   sortDirection={orderBy === headCell.id ? order : false}
                 >
                   <TableSortLabel
                     active={orderBy === headCell.id}
-                    direction={orderBy === headCell.id ? order : 'asc'}
+                    direction={orderBy === headCell.id ? order : "asc"}
                     onClick={handleRequestSort(headCell.id)}
                   >
                     {headCell.label}
                     {orderBy === headCell.id ? (
                       <Box component="span" sx={visuallyHidden}>
-                        {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                        {order === "desc"
+                          ? "sorted descending"
+                          : "sorted ascending"}
                       </Box>
                     ) : null}
                   </TableSortLabel>
@@ -135,30 +131,33 @@ function EntriesTable(
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.slice().sort(getComparator(order, orderBy))
+            {rows
+              .slice()
+              .sort(getComparator(order, orderBy))
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map(entry => (
-                <TableRow 
-                  tabIndex={-1} 
-                  key={
-                    `${tag}:${entry.count}:${entry.date.getTime()}`
-                  }
+              .map((entry) => (
+                <TableRow
+                  tabIndex={-1}
+                  key={`${tag}:${entry.count}:${entry.date.getTime()}`}
                 >
                   <TableCell component="th" scope="row">
                     {dateString(entry.date)}
                   </TableCell>
                   <TableCell align="right">{entry.count}</TableCell>
                   <TableCell align="center">
-                    <Button onClick={() => setEditDialogState({
-                      tag,
-                      ...entry
-                    })}>
+                    <Button
+                      onClick={() =>
+                        setEditDialogState({
+                          tag,
+                          ...entry,
+                        })
+                      }
+                    >
                       Edit
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))
-            }
+              ))}
             {emptyRows > 0 && (
               <TableRow
                 style={{
@@ -189,65 +188,61 @@ function EntriesTable(
   );
 }
 
-function EditEntryDialog(
-  { state, setState, storeDispatch }:
-    {
-      state: "Closed" | StoreEntry;
-      setState: (a: "Closed" | StoreEntry) => void;
-      storeDispatch: Dispatch<StoreAction>;
-    }
-) {
-
-  const open = state !== "Closed"
-  const [num, setNum] = React.useState<NumericFieldOutput>("Empty")
+function EditEntryDialog({
+  state,
+  setState,
+  storeDispatch,
+}: {
+  state: "Closed" | StoreEntry;
+  setState: (a: "Closed" | StoreEntry) => void;
+  storeDispatch: Dispatch<StoreAction>;
+}) {
+  const open = state !== "Closed";
+  const [num, setNum] = React.useState<NumericFieldOutput>("Empty");
   const [dateTimeValue, setDateTimeValue] = React.useState<Date | null>(null);
-  const handleClose = () => setState("Closed")
+  const handleClose = () => setState("Closed");
 
   const handleUpdate = () => {
     if (open) {
-
-      const newEntry = {
+      const newEntry: StoreEntry = {
         tag: state.tag,
-        count: typeof num == 'number' ?
-          num :
-          state.count,
-        date: dateTimeValue != null ?
-          dateTimeValue.getTime() :
-          state.date
-      } as StoreEntry
+        count: typeof num == "number" ? num : state.count,
+        date: dateTimeValue != null ? dateTimeValue : state.date,
+      };
 
       if (!shallowEqual(state, newEntry)) {
         storeDispatch({
           type: "Update",
           oldEntry: state,
-          newEntry
+          newEntry,
         });
       }
 
       handleClose();
-
     }
-  }
+  };
 
   const handleDelete = () => {
     if (open) {
       storeDispatch({
         type: "Delete",
-        entry: state
+        entry: state,
       });
 
       handleClose();
     }
-  }
+  };
 
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Edit {open ? state.tag : ""} Entry</DialogTitle>
-      <DialogContent sx={{
-        rowGap: 2,
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+      <DialogContent
+        sx={{
+          rowGap: 2,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <NumericTextField
           sx={{ marginTop: 1 }}
           id="count_by_numbers"
@@ -257,7 +252,7 @@ function EditEntryDialog(
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <MobileDateTimePicker
             renderInput={(props) => <TextField {...props} />}
-            label='Update Date & Time'
+            label="Update Date & Time"
             value={dateTimeValue}
             onChange={(newValue) => {
               setDateTimeValue(newValue);
@@ -271,6 +266,5 @@ function EditEntryDialog(
         <Button onClick={handleUpdate}>Update</Button>
       </DialogActions>
     </Dialog>
-  )
+  );
 }
-

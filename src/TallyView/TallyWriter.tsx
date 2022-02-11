@@ -1,72 +1,71 @@
-import * as React from 'react';
-import { Dispatch } from 'react';
+import * as React from "react";
+import { Dispatch } from "react";
 
-import { NumericTextField, NumericFieldOutput } from '../BasicComponents/NumericTextField'
 import {
-  Box,
-  Button,
-  Paper
-} from '@mui/material';
-import { MsgAlert } from '../BasicComponents/MsgAlert';
-import { sum } from '../util';
-import { StoreAction } from '../StorageService/store-reducer';
+  NumericTextField,
+  NumericFieldOutput,
+} from "../BasicComponents/NumericTextField";
+import { Box, Button, Paper } from "@mui/material";
+import { MsgAlert } from "../BasicComponents/MsgAlert";
+import { sum } from "../util";
+import { StoreAction } from "../StorageService/store-reducer";
 
-export { TallyWriter }
+export { TallyWriter };
 
-function TallyWriter(
-  { tag, tallyButtons, storeDispatch }:
-    {
-      tag: string;
-      tallyButtons: number[];
-      storeDispatch: Dispatch<StoreAction>;
-    }
-) {
-
+function TallyWriter({
+  tag,
+  tallyButtons,
+  storeDispatch,
+}: {
+  tag: string;
+  tallyButtons: number[];
+  storeDispatch: Dispatch<StoreAction>;
+}) {
   const [alertDialogState, setAlertDialogState] = React.useState({
     open: false,
     title: "",
-    message: ""
+    message: "",
   });
 
   const [num, setNum] = React.useState<NumericFieldOutput>("Empty");
   const disableTallyButton = typeof num === "string";
 
   const tallyClick = (count: number) => () => {
-
     if (count === 0 && num === "Empty") {
       setAlertDialogState({
         open: true,
         title: "Tally Not Recorded",
-        message: "Custom field was left empty"
+        message: "Custom field was left empty",
       });
       return;
     } else if (count === 0 && num === "NaN") {
       setAlertDialogState({
         open: true,
         title: "Tally Not Recorded",
-        message: "Custom field does not contain a number"
+        message: "Custom field does not contain a number",
       });
       return;
     } else if (count === 0) {
-      count = num as number
+      count = num as number;
     }
 
     storeDispatch({
       type: "Write",
-      entry: { tag, date: new Date(), count }
+      entry: { tag, date: new Date(), count },
     });
-
-  }
+  };
 
   const prefabClicks = organiseTallyButtons(tallyButtons);
 
   return (
-    <Box sx={{
-      display: 'grid',
-      gridTemplate: "'txt txt txt tAny' 't0 t1 t2 t3' 't4 t5 t6 t7'",
-      gridGap: 7
-    }}>
-      {prefabClicks.map((n, i) =>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplate: "'txt txt txt tAny' 't0 t1 t2 t3' 't4 t5 t6 t7'",
+        gridGap: 7,
+      }}
+    >
+      {prefabClicks.map((n, i) => (
         <Button
           key={`Tally${n}`}
           sx={{ gridArea: `t${i}` }}
@@ -75,15 +74,15 @@ function TallyWriter(
         >
           {n}
         </Button>
-      )}
+      ))}
       <NumericTextField
         id="count_by_numbers"
         label="Tally a custom amount"
         onChange={setNum}
-        sx={{ gridArea: 'txt' }}
+        sx={{ gridArea: "txt" }}
       />
       <Button
-        sx={{ gridArea: 'tAny' }}
+        sx={{ gridArea: "tAny" }}
         variant="outlined"
         onClick={tallyClick(0)}
         disabled={disableTallyButton}
@@ -92,7 +91,7 @@ function TallyWriter(
       </Button>
       <MsgAlert state={alertDialogState} setState={setAlertDialogState} />
     </Box>
-  )
+  );
 }
 
 function organiseTallyButtons(tallyButtons: number[]): number[] {
@@ -106,7 +105,7 @@ function organiseTallyButtons(tallyButtons: number[]): number[] {
       if (buttons.length < 8) {
         const include = fitButton("lower", buttons);
         if (include > 0) {
-          buttons.push(include)
+          buttons.push(include);
         }
       }
     }
@@ -116,7 +115,8 @@ function organiseTallyButtons(tallyButtons: number[]): number[] {
 }
 
 function fitButton(type: "higher" | "lower", tallyButtons: number[]): number {
-  const avg = tallyButtons.length > 0 ? sum(tallyButtons) / tallyButtons.length : 0;
+  const avg =
+    tallyButtons.length > 0 ? sum(tallyButtons) / tallyButtons.length : 0;
   const trunc = Math.floor(avg / 5) * 5;
 
   let trying = trunc;
@@ -134,5 +134,4 @@ function fitButton(type: "higher" | "lower", tallyButtons: number[]): number {
   }
 
   return include;
-
 }

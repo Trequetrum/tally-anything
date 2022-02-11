@@ -1,10 +1,8 @@
 import {
-  Box,
   Table,
   TableBody,
   TableCell,
   TableRow,
-  Paper,
   TableHead,
   tableCellClasses,
 } from "@mui/material";

@@ -24,7 +24,7 @@ function TallyView({
   const tallyButtons = entriesLoading ? [] : decideWritterButtons(entries);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <Typography variant="h3" sx={{ marginTop: 4 }}>
         <strong style={{ fontWeight: 550 }}>{tag}</strong>
       </Typography>
@@ -46,7 +46,7 @@ function TallyView({
           display: !entriesLoading && entries.length > 0 ? "flex" : "none",
           flexDirection: "column",
           marginBottom: 2,
-          gap: 3,
+          gap: 4,
         }}
       >
         <Paper elevation={1} sx={{ mx: 1 }}>
