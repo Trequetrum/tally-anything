@@ -5,7 +5,7 @@ import {
   NumericTextField,
   NumericFieldOutput,
 } from "../BasicComponents/NumericTextField";
-import { Box, Button, Paper } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { MsgAlert } from "../BasicComponents/MsgAlert";
 import { sum } from "../util";
 import { StoreAction } from "../StorageService/store-reducer";

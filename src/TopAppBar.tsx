@@ -125,7 +125,7 @@ function TagSelectionMenu({
         open={isMenuOpen}
         onClose={handleMenuClose}
       >
-        <MenuList dense>
+        <MenuList>
           {tags === "Loading" ? (
             <MenuItem disabled={true}>
               <ListItemIcon>
@@ -189,6 +189,13 @@ function NewThingDialog({
     handleClose();
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleUpdate();
+    }
+  };
+
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Tally Something New</DialogTitle>
@@ -201,10 +208,12 @@ function NewThingDialog({
       >
         <TextField
           sx={{ marginTop: 2 }}
+          autoFocus={true}
           id="newTagField"
           label={`New Tally`}
           variant="outlined"
           onChange={({ target }: any) => setTagField(target.value)}
+          onKeyDown={handleKeyDown}
         />
       </DialogContent>
       <DialogActions>

@@ -16,7 +16,6 @@ import {
   TableHead,
   TableRow,
   TablePagination,
-  Paper,
   TableSortLabel,
   Dialog,
   DialogActions,
