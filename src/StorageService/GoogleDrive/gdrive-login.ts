@@ -19,6 +19,14 @@ interface GoogleAPIAuthenticator {
   revokeAccess(): void;
 }
 
+/*******
+ * This is a class wrapping GAPI. GoogleAPIAuthenticator_Impl must 
+ * remain private to this module as it assumes the nesseary Global 
+ * GAPI scripts have been loaded. 
+ * 
+ * I use the smart-constructor pattern to ensure the appropriate
+ * invarients hold before returning an instance of this class safely
+ *******/
 class GoogleAPIAuthenticator_Impl implements GoogleAPIAuthenticator {
   login(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -79,6 +87,8 @@ class GoogleAPIAuthenticator_Impl implements GoogleAPIAuthenticator {
   }
 }
 
+// Inject GAPI into the DOM and wait for it to load, then load the 
+// appropriate code 
 function loadAndInitGoogleScripts(): Promise<void> {
   return new Promise((resolve, reject) => {
     console.log("Loading Google API");
@@ -115,10 +125,22 @@ function loadAndInitGoogleScripts(): Promise<void> {
     });
 }
 
+// Remember whether the script is loaded. This can be improved, to
+// include error management a such, but for now we only allowone 
+// attempt. 
+let scriptLoadingCashe: null | Promise<void> = null;
+
+// Smart constructor ensures scripts are loaded before returning an
+// implementaiton of GoogleAPIAuthenticator
 function getGoogleAPIAuthenticator(
   logginCallback: (isLoggedIn: boolean) => void
 ): Promise<GoogleAPIAuthenticator> {
-  return loadAndInitGoogleScripts().then(() => {
+
+  if(scriptLoadingCashe === null){
+    scriptLoadingCashe = loadAndInitGoogleScripts();
+  }
+
+  return scriptLoadingCashe.then(() => {
     // GAPI Client is initialized
     // Listen for loggin state changes.
     gapi.auth2.getAuthInstance().isSignedIn.listen(logginCallback);
