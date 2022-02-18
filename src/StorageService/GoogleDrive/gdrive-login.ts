@@ -86,12 +86,9 @@ function loadAndInitGoogleScripts(): Promise<void> {
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.src = GAPI_SCRIPT_URL;
-    script.onload = () => {
-      resolve(true);
-    };
-    script.onerror = (error) => {
-      reject(error);
-    };
+    script.onload = () => resolve(true);
+    script.onerror = (error) => reject(error);
+
     document.getElementsByTagName("head")[0].appendChild(script);
   })
     .then(() => {
@@ -100,9 +97,9 @@ function loadAndInitGoogleScripts(): Promise<void> {
       return new Promise((resolve, reject) => {
         gapi.load("client:auth2", {
           callback: () => resolve(true),
-          onerror: (err: any) => reject(err),
-          timeout: 5000, // 5 seconds.
-          ontimeout: () => reject("isGapiClientAuth2Loaded Timeout Error"),
+          onerror: (err: any) => reject(err)
+          //timeout: 5000, // 5 seconds.
+          //ontimeout: () => reject("isGapiClientAuth2Loaded Timeout Error"),
         });
       });
     })
